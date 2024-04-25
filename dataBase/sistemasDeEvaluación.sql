@@ -1,5 +1,5 @@
-CREATE DATABASE sistemaDeEvaluacionCodigo;
-USE sistemaDeEvaluacionCodigo;
+CREATE DATABASE sistemaDeEvaluacion;
+USE sistemaDeEvaluacion;
 
 CREATE TABLE alumnos (
     idAlumno INT NOT NULL AUTO_INCREMENT, 
