@@ -1,0 +1,37 @@
+{% extends "baseLogin.html" %}
+  <head>
+    {% block titulo %}Inicio de sesión{% endblock %}
+  </head>
+  <body>
+    {% block encabezado %}<h1>Inicia Sesión</h1>{% endblock %} 
+    {% block contenido %}
+    {% if errores %}
+      <b style="color: red;">{{ errores }}</b>
+    {% endif %}
+    {% endblock %}
+    <section>
+      {% block formulario %}
+      <form action="/login" method="POST">
+        {% csrf_token %}
+        <div>
+          <label for="usuario">Usuario:</label>
+          <br>
+          <input type="text" id="usuario" name="usuario"/>
+        </div>
+        <div>
+          <label for="contra">Contraseña:</label>
+          <br>
+          <input type="password" id="contra" name="contra"/>
+        </div>
+        <a class="navbar-brand" href="#">¿No tienes cuenta?</a>
+        <br>
+        {{ ip }}
+        <br>
+        <input type="submit" value="Aceptar"/>
+        
+      </form>
+      {% endblock %}
+    </section>
+  </body>
+</html>
+
