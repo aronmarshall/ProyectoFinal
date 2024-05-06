@@ -26,4 +26,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='login')),
     path('login', vistas.loguear_usuario),
     path('inicio', vistas.inicio),
+    path('registro', vistas.vista_registro, name="registro"),
+    #path('registro', vistas.registro_usuarios),
 ]

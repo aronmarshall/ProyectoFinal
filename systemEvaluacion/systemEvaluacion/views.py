@@ -100,3 +100,14 @@ def loguear_usuario(request):
         error = "Método no soportado"
         return render(request, 'login.html')
         
+def vista_registro(request):
+    return render(request, 'registro.html')
+
+def registro_usuarios(request):
+    if request.method == 'POST':
+        nombre_completo = request.POST.get('nombre_completo')
+        matricula = request.POST.get('matricula')
+
+        nuevo_usuario = models.Alumno.objects.create(nombre_completo=nombre_completo, matricula=matricula)
+        nuevo_usuario.save()
+        return render(request, 'login.html')

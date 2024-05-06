@@ -11,7 +11,7 @@
     {% endblock %}
     <section>
       {% block formulario %}
-      <form action="/login" method="POST">
+      <form action="/" method="POST">
         {% csrf_token %}
         <div>
           <label for="usuario">Usuario:</label>
@@ -23,7 +23,7 @@
           <br>
           <input type="password" id="contra" name="contra"/>
         </div>
-        <a class="navbar-brand" href="#">¿No tienes cuenta?</a>
+        <a class="navbar-brand" href="registro">¿No tienes cuenta?</a>
         <br>
         {{ ip }}
         <br>
@@ -34,4 +34,3 @@
     </section>
   </body>
 </html>
-

@@ -1,0 +1,32 @@
+{% extends "baseLogin.html" %}
+    <head>
+        {% block titulo %}Registro de usuario{% endblock %}
+    </head>
+    <body>
+        {% block encabezado %}
+        <h1>Bienvenido</h1>
+        {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+        {% endblock %}
+        {% block formulario %}
+            <form action="/" method="POST">
+                {% csrf_token %}
+                <label>Nombre:</label><br>
+                <input type="text" id="nombre_completo" name="nombre_completo"/><br>
+                <label>Matricula:</label><br>
+                <input type="text" id="matricula" name="matricula"/><br>
+                <label>Usuario:</label><br>
+                <input type="text" id="usuario_nuevo" name="usuario_nuevo"/><br>
+                <label>Contraseña</label><br>
+                <input type="password" id="contasenia" name="contrasenia"><br>
+                <input type="submit" value="Registrar"/>
+            </form>
+            <a class="navbar-brand" href="login">Iniciar sesión</a><br>
+
+        {% endblock %}
+    </body>
