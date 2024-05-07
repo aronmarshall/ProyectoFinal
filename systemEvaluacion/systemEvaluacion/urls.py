@@ -17,15 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
-from django.conf import settings
-from django.conf.urls.static import static
 import systemEvaluacion.views as vistas
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(url='login')),
-    path('login', vistas.loguear_usuario),
+    #path('admin/', admin.site.urls),
+    #path('', RedirectView.as_view(url='login')),
     path('inicio', vistas.inicio),
-    path('registro', vistas.vista_registro, name="registro"),
-    #path('registro', vistas.registro_usuarios),
+    path('registro', vistas.registro_de_usuario, name="registro"),
+    #path('login', vistas.loguear_usuario),
 ]

@@ -11,22 +11,20 @@
         {% block scripts %}{% endblock %}
         {% block estilos %}{% endblock %}
     </head>
-
     <body>
-        <header class="container-fluid row text-center bg-primary pt-5 pb-3 mt-2 mb-2 rounded text-white">
+        <header class="container-fluid text-center bg-primary pt-5 pb-3 mt-3
+            mb-3 rounded text-white">
             <h1>{% block encabezado %}{% endblock %}</h1>
         </header>
-
         <nav class="navbar navbar-expand-sm bg-success navbar-dark fixed-top">
-            <div class="container-fluid row text-center text-white">
-                <h1>Sistema de Evaluación de Código</h1>
+            <div class="container-fluid">
+        <a class="navbar-brand" href="https://www.uv.mx">ir a Universidad Veracruzana</a>
             </div>
         </nav>
-
         <section class="container text-center">
             {% block contenido%}{% endblock %}
         </section>
-        <div class="form-control">
+        <div class="form-control text-center pt-5 ">
             {% block formulario %}{% endblock %}
         </div>
     </body>

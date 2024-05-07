@@ -11,6 +11,7 @@ if not activado:
     print("No se pasó correctamente la contraseña")
     exit(1)
 
-os.system('python3 manage.py runserver 0.0.0.0:8000')
 os.system('python3 manage.py makemigrations')
 os.system('python3 manage.py migrate')
+os.system('python3 manage.py check')
+os.system('python3 manage.py runserver 0.0.0.0:8000')

@@ -1,10 +1,10 @@
-{% extends "baseLogin.html" %}
+{% extends "baseLogReg.html" %}
     <head>
         {% block titulo %}Registro de usuario{% endblock %}
     </head>
     <body>
         {% block encabezado %}
-        <h1>Bienvenido</h1>
+        <h1>Regístrate</h1>
         {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -14,7 +14,7 @@
 {% endif %}
         {% endblock %}
         {% block formulario %}
-            <form action="/" method="POST">
+            <form method="POST">
                 {% csrf_token %}
                 <label>Nombre:</label><br>
                 <input type="text" id="nombre_completo" name="nombre_completo"/><br>
