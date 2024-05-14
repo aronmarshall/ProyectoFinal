@@ -21,8 +21,10 @@ import systemEvaluacion.views as vistas
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
-    #path('', RedirectView.as_view(url='login')),
+    path('', RedirectView.as_view(url='login')),
+    path('login', vistas.loguear_usuario),
     path('inicio', vistas.inicio),
-    path('registro', vistas.registro_de_usuario, name="registro"),
-    #path('login', vistas.loguear_usuario),
+    path('registro', vistas.registro_de_usuario),
+    path('autenticacion', vistas.doble_factor),
+    path('validarToken', vistas.validar_token_telegram),
 ]

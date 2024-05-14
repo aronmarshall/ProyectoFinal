@@ -1,3 +1,16 @@
-{% extends "baseLogReg.html" %}
+    {% extends "baseLogReg.html" %}
+    <head>
+        {% block encabezado %}<h1>Iniciar doble</h1>{% endblock %}
+    </head>
 
-{% contenido %}Iniciar doble{endblock}
+    <body>
+        {% block formulario %}
+            <form method="POST">
+                {% csrf_token %}
+                <label>Ingresa tu usuario:</label><br>
+                <input type="text" id="usuario_telegram" name="usuario_telegram" required/><br>
+                <input type="submit" value="Enviar"/>
+            </form>
+        {% endblock %}
+    </body>
+

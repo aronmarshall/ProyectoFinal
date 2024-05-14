@@ -26,8 +26,10 @@ SECRET_KEY = os.environ.get('DJANGO_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+LIMITE_INTENTOS_LOGIN = 3
+LIMITE_SEGUNDOS_LOGIN = 60
 
 # Application definition
 

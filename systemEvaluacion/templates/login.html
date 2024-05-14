@@ -1,35 +1,35 @@
-{% extends "baseLogin.html" %}
+{% extends "baseLogReg.html" %}
     <head>
         {% block titulo %}Inicio de sesión{% endblock %}
-        </head>
+    </head>
+    
     <body>
     {% block encabezado %}<h1>Inicia Sesión</h1>{% endblock %} 
     {% block contenido %}
     {% if errores %}
         <b style="color: red;">{{ errores }}</b>
     {% endif %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
     {% endblock %}
         <section>
-                {% block formulario %}
-                <form action="/" method="POST">
-                {% csrf_token %}
-                <div>
-                    <label for="usuario">Usuario:</label>
-                    <br>
-                    <input type="text" id="usuario" name="usuario"/>
-                </div>
-                <div>
-                    <label for="contra">Contraseña:</label>
-                    <br>
-                    <input type="password" id="contra" name="contra"/>
-                </div>
-                <a class="navbar-brand" href="registro">¿No tienes cuenta?</a>
-                <br>
-                {{ ip }}
-                <br>
-                <input type="submit" value="Aceptar"/>
+            {% block formulario %}
+                <form method="POST">
+                    {% csrf_token %}
+                        <label for="login_usuario">Usuario:</label><br>
+                        <input type="text" id="login_usuario" name="login_usuario" required/><br>
+                        <label for="login_contrasenia">Contraseña:</label><br>
+                        <input type="password" id="login_contrasenia" name="login_contrasenia" required/><br>
+                        {{ ip }}
+                        <br>
+                        <input type="submit" value="Aceptar"/><br>
+                        <br>
+                        <a class="navbar-brand" href="registro">¿No tienes cuenta?</a><br>
                 </form>
-                {% endblock %}
+            {% endblock %}
         </section>
     </body>
 </html>

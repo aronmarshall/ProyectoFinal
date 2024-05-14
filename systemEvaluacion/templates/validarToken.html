@@ -1,0 +1,22 @@
+{% extends "baseLogReg.html" %}
+<head>
+    {% block encabezado %}<h1>Validación de Token</h1>{% endblock %}
+</head>
+
+<body>
+    {% block formulario %}
+        <form method="POST">
+            {% csrf_token %}
+            <label>Ingresa el Token</label><br>
+
+            <input type="text" id="c1" name="c1"/>
+            <input type="text" id="c2" name="c2"/>
+            <input type="text" id="c3" name="c3"/>
+            <input type="text" id="c4" name="c4"/>
+            <input type="text" id="c5" name="c5"/>
+            <input type="text" id="c6" name="c6"/><br>
+            <input type="submit" value="Confirmar"/>
+        </form>
+    {% endblock %}
+</body>
+
