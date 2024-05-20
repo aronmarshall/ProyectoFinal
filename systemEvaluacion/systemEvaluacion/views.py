@@ -18,9 +18,22 @@ import requests
 import re
 
 def inicio(request):
+    """_summary_
+    Renderiza la página de inicio.
+
+    Esta vista maneja las solicitudes a la página de inicio de la aplicación.
+    Utiliza la función render de Django para devolver la plantilla 'inicio.html'.
+
+    Args:
+        request: Objeto HttpRequest que contiene los datos de la solicitud.
+
+    Returns:
+        HttpResponse: La respuesta HTTP con el contenido renderizado de la plantilla 'inicio.html'.
+    """
     return render(request, 'inicio.html')
 
 def registro_de_usuario(request):
+    
     if request.method == 'POST':
         nombre_completo = request.POST.get('nombre_completo')
         matricula = request.POST.get('matricula')
