@@ -6,17 +6,16 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 from datetime import timezone
 
-import requests
+
 from bd import models
 from systemEvaluacion import settings
+from api import telegram
+
 import os
 import base64
 import crypt
-
-
-TOKEN = '7199611399:AAHrE8s0MW6oLz-MmhI6RzFDs-TCFaxq7q8'  
-URL = f'https://api.telegram.org/bot{TOKEN}/getUpdates'
-
+import requests
+import re
 
 def inicio(request):
     return render(request, 'inicio.html')
@@ -35,20 +34,27 @@ def registro_de_usuario(request):
             return render(request, 'registro.html')
         else:
             if contrasenia == contrasenia_confirma:
-                salt_generado=generador_de_salt()
-                hasheado = crypt.crypt(contrasenia, '$6$' + salt_generado)
-                nuevo_alumno = models.Alumno(nombre_completo=nombre_completo, matricula=matricula)
-                nuevo_alumno.save()
-                id_alumno = nuevo_alumno.id
-                nuevo_usuario = models.Usuario(usuario=usuario, contrasenia=hasheado.encode(), alumno_id=id_alumno)
-                nuevo_usuario.save()
-                messages.success(request, f'Se realizó la operación de manera correcta. {usuario}')
-                return render(request, 'registro.html')
-
+                if politica_de_contrasenia(contrasenia):
+                    salt_generado=generador_de_salt()
+                    hasheado = crypt.crypt(contrasenia, '$6$' + salt_generado)
+                    nuevo_alumno = models.Alumno(nombre_completo=nombre_completo, matricula=matricula)
+                    nuevo_alumno.save()
+                    id_alumno = nuevo_alumno.id
+                    nuevo_usuario = models.Usuario(usuario=usuario, contrasenia=hasheado.encode(), alumno_id=id_alumno)
+                    nuevo_usuario.save()
+                    messages.success(request, f'Se realizó la operación de manera correcta. {usuario}')
+                    return render(request, 'registro.html')
+                else:
+                    messages.error(request, 'La contraseña no cumple con las políticas.')
+                    return render(request, 'registro.html')
             else:
                 messages.error(request, 'Las contraseñas no son iguales.')
                 return render(request, 'registro.html')
     return render(request, 'registro.html')
+
+def politica_de_contrasenia(contrasenia):
+    pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$')
+    return pattern.match(contrasenia)
 
 def generador_de_salt():
     while True:
@@ -105,54 +111,13 @@ def doble_factor(request):
         return render(request, 'autenticacion.html')
     elif request.method == 'POST':
         usuario_telegram = request.POST.get('usuario_telegram')
-        procesar_doble_factor(usuario_telegram)
-        #return render(request, 'validarToken.html')
-        return HttpResponseRedirect('validarToken')
-
-def procesar_doble_factor(usuario_telegram):
-    try:
-        chat_id = obtener_chat_id(usuario_telegram)
-        if chat_id:
-            token = generar_token()
-            tiempo = obtener_tiempo()
-            guardar_token = models.validaToken(tokens=token, tiempo=tiempo)
-            guardar_token.save()
-            enviar_mensaje_telegram(chat_id, f'Hola usuario tu Token es: {token}')
+        if telegram.procesar_doble_factor(usuario_telegram):
+            return HttpResponseRedirect('validarToken')
         else:
-            messages.info(request, f'El usuario {usuario_telegram} no ha enviado mensajes al bot.')
-    except requests.exceptions.HTTPError as e:
-        messages.error(request, f'Error al realizar la solicitud HTTP: {e}')
-    except Exception as ex:
-        messages.error(request, f'Error inesperado: {ex}')
-
-def obtener_chat_id(usuario_telegram):
-    URL = 'https://api.telegram.org/bot{}/getUpdates'.format(TOKEN)
-    response = requests.get(URL)
-    response.raise_for_status()
-    data = response.json()
-    for update in data['result']:
-        if 'message' in update and 'chat' in update['message'] and 'username' in update['message']['chat']:
-            if update['message']['chat']['username'] == usuario_telegram:
-                return update['message']['chat']['id']
-    return None
-def obtener_tiempo():
-    tiempo = datetime.now()
-    tiempo_actual = tiempo.strftime('%H:%M:%S')
-    return tiempo_actual
-
-def generar_token():
-    p = os.urandom(4)
-    token_bytes = base64.b64encode(p)
-    return token_bytes.decode('utf-8')[:6]
-
-def enviar_mensaje_telegram(chat_id, mensaje):
-    URL_API_CHAT = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-    params = {'chat_id': chat_id, 'text': mensaje}
-    response = requests.get(URL_API_CHAT, params=params)
-
-    if response.status_code != 200:
-        messages.error(request, 'Error al enviar el mensaje:')
-
+            return HttpResponseRedirect('enviarMensaje')
+##################################################################
+def redirigir_a_mensaje(request):
+    return render(request, 'enviarMensaje.html')
 ##################################################################
 
 

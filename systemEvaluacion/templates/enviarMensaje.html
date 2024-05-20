@@ -1,0 +1,18 @@
+{% extends "baseLogReg.html" %}
+    <head>
+        {% block encabezado %}<h1>Inicia tu bot</h1>{% endblock %}
+        {% block scripts %}
+        <script src="/static/js/principal.js"></script>
+        {% endblock %}
+    </head>
+
+    <body>
+        {% block contenido %}
+
+        <p>Estimado Usuario, por favor iniciar el bot con /start para obtener un token:</p><br>
+        <button class="ejemplo" onclick="reintentar()">Re-Intenta</button>
+        {% endblock %}
+
+
+    </body>
+
