@@ -35,11 +35,42 @@ def inicio(request):
 
 #########################################################Registro
 def registro_de_usuario(request):
+<<<<<<< HEAD
     if request.method == 'GET':
         return render(request, 'registro.html')
 
     elif request.method == 'POST':
 
+=======
+     
+    """ Maneja el proceso de registro de un nuevo usuario.
+
+    Args:
+        request (HttpRequest): La solicitud HTTP que contiene los datos del formulario de registro.
+
+    Variables:
+        nombre_completo (str): El nombre completo del nuevo usuario.
+        matricula (str): La matrícula del nuevo usuario.
+        usuario (str): El nombre de usuario elegido por el nuevo usuario.
+        contrasenia (str): La contraseña elegida por el nuevo usuario.
+        contrasenia_confirma (str): La confirmación de la contraseña elegida por el nuevo usuario.
+        existe_usuario_registrado (bool): Indicador de si el nombre de usuario ya está registrado.
+        salt_generado (str): Salt generado para el hashing de la contraseña.
+        hasheado (str): Contraseña hasheada.
+        nuevo_alumno (models.Alumno): Instancia del nuevo alumno creado.
+        id_alumno (int): ID del nuevo alumno creado.
+        nuevo_usuario (models.Usuario): Instancia del nuevo usuario creado.
+
+    Raises:
+        ValueError: Si el nombre de usuario ya está registrado.
+        ValueError: Si las contraseñas no coinciden.
+        ValueError: Si la contraseña no cumple con las políticas de seguridad.
+
+    Returns:
+        HttpResponse: La respuesta HTTP que representa la página de registro, con mensajes de éxito o error.
+    """
+    if request.method == 'POST':
+>>>>>>> 6e7306692010ef3b7690babcfc96a0268ea52ea3
         nombre_completo = request.POST.get('nombre_completo')
         matricula = request.POST.get('matricula')
         usuario = request.POST.get('usuario_nuevo')
