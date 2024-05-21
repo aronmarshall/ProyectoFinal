@@ -17,6 +17,7 @@ import crypt
 import requests
 import re
 
+###########################################################Inicio
 def inicio(request):
     """_summary_
     Renderiza la página de inicio.
@@ -32,44 +33,82 @@ def inicio(request):
     """
     return render(request, 'inicio.html')
 
+#########################################################Registro
 def registro_de_usuario(request):
-    
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render(request, 'registro.html')
+
+    elif request.method == 'POST':
+
         nombre_completo = request.POST.get('nombre_completo')
         matricula = request.POST.get('matricula')
         usuario = request.POST.get('usuario_nuevo')
         contrasenia = request.POST.get('contrasenia')
         contrasenia_confirma = request.POST.get('contrasenia_confirma')
 
-        existe_usuario_registrado = models.Usuario.objects.filter(usuario=usuario).exists()
-        if existe_usuario_registrado :
+        if verificar_existencia_usuario(usuario):
             messages.info(request, f'Lo siento, el usuario {usuario} esta en uso.')
             return render(request, 'registro.html')
         else:
-            if contrasenia == contrasenia_confirma:
-                if politica_de_contrasenia(contrasenia):
-                    salt_generado=generador_de_salt()
-                    hasheado = crypt.crypt(contrasenia, '$6$' + salt_generado)
-                    nuevo_alumno = models.Alumno(nombre_completo=nombre_completo, matricula=matricula)
-                    nuevo_alumno.save()
-                    id_alumno = nuevo_alumno.id
-                    nuevo_usuario = models.Usuario(usuario=usuario, contrasenia=hasheado.encode(), alumno_id=id_alumno)
-                    nuevo_usuario.save()
-                    messages.success(request, f'Se realizó la operación de manera correcta. {usuario}')
+            if existe_matricula_bd(matricula):
+                messages.info(request, f'Lo siento, la matrícula {matricula} esta registrada.')
+                return render(request, 'registro.html')
+            else:
+                if not validar_politica_matricula(matricula):
+                    messages.info(request, f'Lo siento, la matrícula {matricula} no cumple con las políticas.')
                     return render(request, 'registro.html')
                 else:
-                    messages.error(request, 'La contraseña no cumple con las políticas.')
-                    return render(request, 'registro.html')
-            else:
-                messages.error(request, 'Las contraseñas no son iguales.')
-                return render(request, 'registro.html')
-    return render(request, 'registro.html')
+                    if not politica_de_contrasenia(contrasenia):
+                        messages.info(request, f'Lo siento, la contraseña debe contener mínimo 10 carácteres, mayúsculas, minúsuclas, dígitos, al menos un carácter especial.')
+                        return render(request, 'registro.html')
+                    else:
+                        if not comparar_contrasenias(contrasenia, contrasenia_confirma):
+                            messages.info(request, 'Las contraseñas no son iguales.')
+                            return render(request, 'registro.html')
+                        else:
+                            if not insertar_datos_alumno_usuario(nombre_completo, matricula, 
+                                                                usuario, contrasenia):
+                                messages.error(request, 'No se concreto la creación.')
+                                return render(request, 'registro.html')
+                            else:
+                                messages.info(request, f'Se creo con éxito el usuario {usuario}.')
+                                return render(request, 'registro.html')
 
-def politica_de_contrasenia(contrasenia):
-    pattern = re.compile(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$')
-    return pattern.match(contrasenia)
+def verificar_existencia_usuario(usuario:str)->bool:
+    existe_usuario_registrado = models.Usuario.objects.filter(usuario=usuario).exists()
+    if existe_usuario_registrado:
+        return True
+    else:
+        return False
 
-def generador_de_salt():
+def existe_matricula_bd(matricula:str)->bool:
+    matricula_registrada = models.Alumno.objects.filter(matricula=matricula).exists()
+    if matricula_registrada:
+        return True
+    else:
+        return False
+
+def validar_politica_matricula(matricula:str)->bool:
+    politica_de_matricula = r'^[zZ|sS]{2}\d{8}$'
+    if re.match(politica_de_matricula, matricula):
+        return True
+    else:
+        return False
+    
+def politica_de_contrasenia(contrasenia:str)->bool:
+    patron_contrasenia = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$'
+    if re.match (patron_contrasenia, contrasenia):
+        return True
+    else:
+        return False
+    
+def comparar_contrasenias(contrasenia:str, contrasenia_confirma:str)->bool:
+    if contrasenia == contrasenia_confirma:
+        return True
+    else:
+        return False
+
+def generador_de_salt()->str:
     while True:
         valor_aleatorio = os.urandom(16)
         valor_generado_salt = base64.b64encode(valor_aleatorio).decode('utf-8')
@@ -79,7 +118,26 @@ def generador_de_salt():
             salt_guardado.save()
             break
     return valor_generado_salt
-################################################################
+
+def contrasenia_segura(contrasenia:str)->str:
+    salt_generado=generador_de_salt()
+    hasheado = crypt.crypt(contrasenia, '$6$' + salt_generado)
+    return hasheado
+
+
+def insertar_datos_alumno_usuario(nombre_completo:str, matricula:str, usuario:str, contrasenia:str)->bool:
+
+    nuevo_alumno = models.Alumno(nombre_completo=nombre_completo, matricula=matricula)
+    nuevo_alumno.save()
+    id_alumno = nuevo_alumno.id
+
+    hasheado=contrasenia_segura(contrasenia)
+    nuevo_usuario = models.Usuario(usuario=usuario, contrasenia=hasheado.encode(), alumno_id=id_alumno)
+    nuevo_usuario.save()
+    return True
+
+
+#########################################################Login
 def loguear_usuario(request):
     if request.method == 'GET':
         return render(request, 'login.html')
