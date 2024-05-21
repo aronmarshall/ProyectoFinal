@@ -141,28 +141,35 @@ def insertar_datos_alumno_usuario(nombre_completo:str, matricula:str, usuario:st
 def loguear_usuario(request):
     if request.method == 'GET':
         return render(request, 'login.html')
+    
     elif request.method == 'POST':
+
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
-
-        if not usuario or not contrasenia:
-            messages.info(request, "Completa ambos campos.")
-            return render(request, 'login.html')
         
+        existe_usuario = models.Usuario.objects.filter(usuario=usuario).exists()
+        if not existe_matricula_bd(usuario):
+            messages.error(request, "Usuario o contraseña incorrectos.")
+            return render(request, 'login.html')
         else:
-            existe_usuario = models.Usuario.objects.filter(usuario=usuario).exists()
-            if not existe_usuario:
+            if consultar_hash(usuario, contrasenia):
+                    
+                return HttpResponseRedirect('autenticacion')
+            else:
                 messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html')
-            else:
-                if consultar_hash(usuario, contrasenia):
-                    
-                    return HttpResponseRedirect('autenticacion')
-                else:
-                    messages.error(request, "Usuario o contraseña incorrectos")
-                    return render(request, 'login.html')
     else:
         return render(request, 'login.html')
+
+def existe_usuario_bd(usuario:str)->bool:
+    existe_usuario = models.Usuario.objects.filter(usuario=usuario).exists()
+    if existe_usuario:
+        return True
+    else:
+        return False
+
+
+
 
 def consultar_hash(usuario:str, contrasenia:str): 
 
