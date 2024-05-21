@@ -35,6 +35,18 @@ def inicio(request):
 
 #########################################################Registro
 def registro_de_usuario(request):
+    """
+    Maneja el proceso de registro de un nuevo usuario.
+
+    - Si el método de la solicitud es GET, renderiza la página de registro.
+    - Si el método de la solicitud es POST, procesa los datos del formulario para registrar al usuario.
+
+    Args:
+        request (HttpRequest): Objeto HttpRequest que puede ser de tipo GET o POST.
+
+    Returns:
+        HttpResponse: Renderización de la página de registro o mensajes de error según el caso.
+    """
     if request.method == 'GET':
         return render(request, 'registro.html')
 
@@ -75,6 +87,15 @@ def registro_de_usuario(request):
                                 return render(request, 'registro.html')
 
 def verificar_existencia_usuario(usuario:str)->bool:
+    """
+    Verifica si un usuario ya está registrado en la base de datos.
+
+    Args:
+        usuario (str): Nombre de usuario a verificar.
+
+    Returns:
+        bool: True si el usuario ya existe en la base de datos, False en caso contrario.
+    """
     existe_usuario_registrado = models.Usuario.objects.filter(usuario=usuario).exists()
     if existe_usuario_registrado:
         return True
@@ -82,6 +103,15 @@ def verificar_existencia_usuario(usuario:str)->bool:
         return False
 
 def existe_matricula_bd(matricula:str)->bool:
+    """
+    Verifica si una matrícula ya está registrada en la base de datos.
+
+    Args:
+        matricula (str): Matrícula a verificar.
+
+    Returns:
+        bool: True si la matrícula ya existe en la base de datos, False en caso contrario.
+    """
     matricula_registrada = models.Alumno.objects.filter(matricula=matricula).exists()
     if matricula_registrada:
         return True
@@ -89,6 +119,19 @@ def existe_matricula_bd(matricula:str)->bool:
         return False
 
 def validar_politica_matricula(matricula:str)->bool:
+    """
+    Valida si la matrícula cumple con el formato requerido por las políticas.
+
+    El formato requerido es:
+    - Debe comenzar con dos letras 'z' o 's' (mayúsculas o minúsculas).
+    - Seguido de 8 dígitos numéricos.
+
+    Args:
+        matricula (str): Matrícula a validar.
+
+    Returns:
+        bool: True si la matrícula cumple con el formato requerido, False en caso contrario.
+    """
     politica_de_matricula = r'^[zZ|sS]{2}\d{8}$'
     if re.match(politica_de_matricula, matricula):
         return True
@@ -96,6 +139,22 @@ def validar_politica_matricula(matricula:str)->bool:
         return False
     
 def politica_de_contrasenia(contrasenia:str)->bool:
+    """
+    Valida si una contraseña cumple con las políticas de seguridad establecidas.
+
+    Las políticas de seguridad para la contraseña son:
+    - Debe contener al menos 10 caracteres.
+    - Debe contener al menos una letra mayúscula.
+    - Debe contener al menos una letra minúscula.
+    - Debe contener al menos un dígito.
+    - Debe contener al menos un carácter especial (por ejemplo, @$!%*?&).
+
+    Args:
+        contrasenia (str): Contraseña a validar.
+
+    Returns:
+        bool: True si la contraseña cumple con todas las políticas de seguridad, False en caso contrario.
+    """
     patron_contrasenia = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$'
     if re.match (patron_contrasenia, contrasenia):
         return True
@@ -103,12 +162,35 @@ def politica_de_contrasenia(contrasenia:str)->bool:
         return False
     
 def comparar_contrasenias(contrasenia:str, contrasenia_confirma:str)->bool:
+    """
+    Compara dos contraseñas para verificar si son iguales.
+
+    Args:
+        contrasenia (str): La primera contraseña.
+        contrasenia_confirma (str): La segunda contraseña para confirmar.
+
+    Returns:
+        bool: True si las contraseñas son iguales, False en caso contrario.
+    """
     if contrasenia == contrasenia_confirma:
         return True
     else:
         return False
 
 def generador_de_salt()->str:
+    """
+    Genera un valor de salt único para la seguridad de la contraseña.
+
+    El proceso de generación de salt es el siguiente:
+    - Genera un valor aleatorio de 16 bytes.
+    - Codifica el valor aleatorio en base64.
+    - Verifica que el valor generado no exista ya en la base de datos (para garantizar unicidad).
+    - Guarda el valor de salt en la base de datos para evitar colisiones futuras.
+    - Retorna el valor de salt generado.
+
+    Returns:
+        str: El valor de salt generado y codificado en base64.
+    """
     while True:
         valor_aleatorio = os.urandom(16)
         valor_generado_salt = base64.b64encode(valor_aleatorio).decode('utf-8')
