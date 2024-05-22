@@ -11,11 +11,18 @@ from bd import models
 from systemEvaluacion import settings
 from api import telegram
 
+
 import os
 import base64
 import crypt
 import requests
 import re
+import threading
+
+###########################################################Arranque del bot
+bot_thread = threading.Thread(target=telegram.run_bot)
+bot_thread.daemon = True
+bot_thread.start()
 
 ###########################################################Inicio
 def inicio(request):
@@ -228,32 +235,20 @@ def loguear_usuario(request):
 
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
-        
-        existe_usuario = models.Usuario.objects.filter(usuario=usuario).exists()
-        if not existe_matricula_bd(usuario):
-            messages.error(request, "Usuario o contraseña incorrectos.")
+
+        if not verificar_existencia_usuario(usuario):
+            messages.error(request, "Usuario o contraseña incorrectos")
             return render(request, 'login.html')
         else:
-            if consultar_hash(usuario, contrasenia):
-                    
-                return HttpResponseRedirect('autenticacion')
-            else:
+            if not consultar_hash(usuario, contrasenia):
                 messages.error(request, "Usuario o contraseña incorrectos")
-                return render(request, 'login.html')
+                return render(request, 'login.html')               
+            else:
+                    return HttpResponseRedirect('validarToken')
     else:
         return render(request, 'login.html')
 
-def existe_usuario_bd(usuario:str)->bool:
-    existe_usuario = models.Usuario.objects.filter(usuario=usuario).exists()
-    if existe_usuario:
-        return True
-    else:
-        return False
-
-
-
-
-def consultar_hash(usuario:str, contrasenia:str): 
+def consultar_hash(usuario:str, contrasenia:str)->bool: 
 
     usuario = models.Usuario.objects.filter(usuario=usuario).first()
     hasheado = usuario.contrasenia.decode('utf-8')
@@ -263,50 +258,20 @@ def consultar_hash(usuario:str, contrasenia:str):
         return True
     else:
         return False
-
-############################################################
-
-def doble_factor(request):
-    if request.method == 'GET':
-        return render(request, 'autenticacion.html')
-    elif request.method == 'POST':
-        usuario_telegram = request.POST.get('usuario_telegram')
-        if telegram.procesar_doble_factor(usuario_telegram):
-            return HttpResponseRedirect('validarToken')
-        else:
-            return HttpResponseRedirect('enviarMensaje')
-##################################################################
-def redirigir_a_mensaje(request):
-    return render(request, 'enviarMensaje.html')
-##################################################################
-
+#################################################################Doble factor autenticación
 
 def validar_token_telegram(request):
     if request.method == 'GET':
         return render(request, 'validarToken.html')
     elif request.method == 'POST':
-        caracter1 = request.POST.get('c1')
-        caracter2 = request.POST.get('c2')
-        caracter3 = request.POST.get('c3')
-        caracter4 = request.POST.get('c4')
-        caracter5 = request.POST.get('c5')
-        caracter6 = request.POST.get('c6')
-
-        token_ingresado = caracter1 + caracter2 + caracter3 + caracter4 + caracter5 + caracter6
+        token_ingresado = request.POST.get('caracteres')
         
-        if verificar_token_ingresado(token_ingresado) :
-            return render(request, 'inicio.html')
+        if verificar_estado_de_token(token_ingresado):
+            return render(request, inicio.html)
         else:
-            messages.error(request, f'Lo siento, el token {token_ingresado} ya no es válido')
-            return render(request, 'login.html')
-
+            return render(request, f'El token {token_ingresado}')
     
-def verificar_token_ingresado(token_ingresado):
-    existe_token = models.validaToken.objects.filter(tokens=token_ingresado).first()
-    if existe_token:
-        if existe_token.tokens == token_ingresado:
-            return True
-        else:
-            return False
-    else: 
-        return False
+#def verificar_estado_de_token(token_ingresado):
+
+#def genero_token_anteriormente():
+

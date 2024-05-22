@@ -1,108 +1,98 @@
-import requests
-import os
-import base64
 from datetime import datetime
+import threading
+import telebot
+import secrets
+import string
+import os
+
 from bd import models
 
-TOKEN = '7199611399:AAHrE8s0MW6oLz-MmhI6RzFDs-TCFaxq7q8'
-URL = f'https://api.telegram.org/bot{TOKEN}/getUpdates'
+TOKEN = os.environ.get('TOKEN_TELEGRAM')
+bot = telebot.TeleBot(TOKEN)
 
-
-def obtener_chat_id(usuario_telegram):
-    """Obtiene el chat ID de un usuario de Telegram dado su nombre de usuario.
-    Args:
-        usuario_telegram (str): El nombre de usuario de Telegram.
-
-    Raises:
-        Exception: Si ocurre un error al realizar la solicitud a la API de Telegram.
+def generar_token() -> str:
+    """
+    Genera un token aleatorio de 6 caracteres compuesto por letras mayúsculas y dígitos.
 
     Returns:
-        int: El chat ID del usuario de Telegram si se encuentra, de lo contrario None.
+        str: El token generado.
     """
-    try:
-        response = requests.get(URL)
-        response.raise_for_status()
-        data = response.json()
-        for update in data['result']:
-            if 'message' in update and 'chat' in update['message'] and 'username' in update['message']['chat']:
-                if update['message']['chat']['username'] == usuario_telegram:
-                    return update['message']['chat']['id']
-        return None
-    except requests.exceptions.RequestException as e:
-        raise Exception(f'Error al obtener el chat ID: {e}')
+    alphabet = string.ascii_uppercase + string.digits
+    token = "".join(secrets.choice(alphabet) for _ in range(6))
+    return token
 
-
-def obtener_tiempo():
+@bot.message_handler(commands=['start', 'help'])
+def mensaje_bienvenida(message:str)->None:
     """
-    Obtiene la hora actual en formato HH:MM:SS.
-
-    Returns:
-        str: La hora actual en formato HH:MM:SS.
-    """
-    tiempo = datetime.now()
-    tiempo_actual = tiempo.strftime('%H:%M:%S')
-    return tiempo_actual
-
-
-def generar_token():
-    """
-    Genera un token aleatorio de 6 caracteres.
-
-    Returns:
-        str: Un token aleatorio de 6 caracteres.
-    """
-    p = os.urandom(4)
-    token_bytes = base64.b64encode(p)
-    return token_bytes.decode('utf-8')[:6]
-
-
-def enviar_mensaje_telegram(chat_id, mensaje):
-    """
-    Envía un mensaje a un usuario de Telegram.
+    Maneja los comandos /start y /help y envía un mensaje de bienvenida al usuario.
 
     Args:
-        chat_id (int): El ID del chat de Telegram al que se enviará el mensaje.
-        mensaje (str): El contenido del mensaje a enviar.
-
-    Raises:
-        Exception: Si ocurre un error al realizar la solicitud a la API de Telegram.
+        message: El mensaje recibido que contiene el comando.
     """
-    URL_API_CHAT = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-    params = {'chat_id': chat_id, 'text': mensaje}
+    bot.reply_to(message, "Hola! Usa /solicitar_token para obtener un token.")
+
+@bot.message_handler(commands=['solicitar_token'])
+def solicitar_token_handler(message:str)->None:
+    """
+    Maneja el comando /solicitar_token y envía un token OTP al usuario.
+
+    Args:
+        message: El mensaje recibido que contiene el comando.
+    """
+    usuario_o_telefono = message.chat.id  
+    token = generar_token()
+    mensaje = f"Su token es: {token}"
+    insertar_token_db(message)
+    enviar_token_usuario(usuario_o_telefono, mensaje)
+
+def enviar_token_usuario(usuario_o_telefono, mensaje) -> None:
+    """
+    Envía el token OTP al usuario a través de la API de Telegram.
+
+    Args:
+        usuario_o_telefono: El nombre de usuario o ID del chat de Telegram.
+        mensaje: El mensaje que contiene el token OTP.
+    """
     try:
-        response = requests.get(URL_API_CHAT, params=params)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
+        bot.send_message(usuario_o_telefono, mensaje)
+    except Exception as e:
         raise Exception(f'Error al enviar el mensaje a Telegram: {e}')
 
+@bot.message_handler(commands=['mi_chat_id'])
+def enviar_chat_id(message:str)-> str:
 
-def procesar_doble_factor(usuario_telegram):
+    chat_id = message.chat.id
+    bot.reply_to(message, f"Tu chat ID es: {chat_id}")
+
+
+def run_bot():
+    bot.polling()
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+
+def obtener_tiempo_horas_minutos()->str:
     """
-    Coordina el proceso de autenticación de doble factor para un usuario de Telegram.
-
-    Args:
-        usuario_telegram (str): El nombre de usuario de Telegram.
-
-    Raises:
-        ValueError: Si el usuario no ha enviado mensajes al bot de Telegram.
-        Exception: Si ocurre un error inesperado durante el proceso.
+    Obtiene la hora actual en formato HH:MM.
 
     Returns:
-        bool: True si el proceso de autenticación de doble factor fue exitoso, False en caso contrario.
+        str: La hora actual en formato HH:MM.
     """
-    try:
-        chat_id = obtener_chat_id(usuario_telegram)
-        if chat_id:
-            token = generar_token()
-            tiempo = obtener_tiempo()
-            guardar_token = models.validaToken(tokens=token, tiempo=tiempo)
-            guardar_token.save()
-            enviar_mensaje_telegram(chat_id, f'Hola {usuario_telegram}, tu Token es: {token}')
-            return True
-        else:
-            ValueError(f'El usuario {usuario_telegram} no ha enviado mensajes al bot.')
-            return False
-    except ValueError as ve:
-        raise ve  # Maneja el error de usuario no encontrado
-    except Exception as e:
-        raise Exception(f'Error inesperado: {e}')
+    tiempo = datetime.now()
+    tiempo_actual = tiempo.strftime('%H:%M')
+    return tiempo_actual
+
+#######NOTA HACER FUNCIÓN QUE SEA CAPAZ DE OBTENER USUARIO PASADO COMO VARIABLE
+def insertar_token_db(message:str)->bool:
+    usuario_telegram = message.from_user.username
+    nombre_usuario = "emilio"
+    token = generar_token()
+    tiempo = obtener_tiempo_horas_minutos()
+    estatus = 'True'
+
+    guarda_info_token = models.TelegramToken(usuario_telegram=usuario_telegram, nombre_usuario=nombre_usuario,
+                                                tokens=token, tiempo=tiempo, estatus=estatus)
+    guarda_info_token.save()
+    return True
+
+

@@ -15,10 +15,14 @@ class Usuario(models.Model):
 class TokenOcupados(models.Model):    
     token = models.CharField(max_length=32)
 
-class validaToken(models.Model):
+class TelegramToken(models.Model):
+    id_token = models.AutoField(primary_key=True)
+    usuario_telegram = models.CharField(max_length=20)
+    nombre_usuario = models.CharField(max_length=20)  
     tokens = models.CharField(max_length=6)
     tiempo = models.TimeField()
-    
+    estatus = models.BooleanField(default=False)
+
 class Intentos(models.Model):
     ip = models.GenericIPAddressField(primary_key=True)
     intentos = models.PositiveIntegerField()

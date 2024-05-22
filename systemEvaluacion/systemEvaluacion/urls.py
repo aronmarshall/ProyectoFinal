@@ -25,7 +25,5 @@ urlpatterns = [
     path('login', vistas.loguear_usuario),
     path('inicio', vistas.inicio),
     path('registro', vistas.registro_de_usuario),
-    path('autenticacion', vistas.doble_factor),
     path('validarToken', vistas.validar_token_telegram),
-    path('enviarMensaje', vistas.redirigir_a_mensaje),
 ]
