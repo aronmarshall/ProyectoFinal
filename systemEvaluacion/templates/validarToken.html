@@ -1,6 +1,6 @@
 {% extends "baseLogReg.html" %}
 <head>
-    {% block encabezado %}<h1>Validación de Token</h1>{% endblock %}
+    {% block encabezado %}<h1>Autenticación</h1>{% endblock %}
 </head>
 
 <body>
@@ -8,15 +8,11 @@
         <form method="POST">
             {% csrf_token %}
             <label>Ingresa el Token</label><br>
-
-            <input type="text" id="c1" name="c1"/>
-            <input type="text" id="c2" name="c2"/>
-            <input type="text" id="c3" name="c3"/>
-            <input type="text" id="c4" name="c4"/>
-            <input type="text" id="c5" name="c5"/>
-            <input type="text" id="c6" name="c6"/><br>
+            <input type="text" id="caracteres" name="caracteres"/>
+            <br>
             <input type="submit" value="Confirmar"/>
         </form>
+        <a href="https://web.telegram.org/a/#7199611399">Ir a bot</a>
     {% endblock %}
 </body>
 
