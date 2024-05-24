@@ -1,4 +1,6 @@
 from pyexpat.errors import messages
+import secrets
+import string
 from urllib import request
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -235,7 +237,7 @@ def loguear_usuario(request):
 
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
-
+        
         if not verificar_existencia_usuario(usuario):
             messages.error(request, "Usuario o contraseña incorrectos")
             return render(request, 'login.html')
@@ -244,6 +246,9 @@ def loguear_usuario(request):
                 messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html')               
             else:
+                    request.session['usuario_iniciado'] = usuario
+                    request.session['token'] = generar_token()
+
                     return HttpResponseRedirect('validarToken')
     else:
         return render(request, 'login.html')
@@ -258,20 +263,67 @@ def consultar_hash(usuario:str, contrasenia:str)->bool:
         return True
     else:
         return False
-#################################################################Doble factor autenticación
+    
+#################################################################
+def generar_token() -> str:
+    """
+    Genera un token aleatorio de 6 caracteres compuesto por letras mayúsculas y dígitos.
 
+    Returns:
+        str: El token generado.
+    """
+    alphabet = string.ascii_uppercase + string.digits
+    token = "".join(secrets.choice(alphabet) for _ in range(6))
+    return token
+
+def obtener_tiempo_horas_minutos()->str:
+    """
+    Obtiene la hora actual en formato HH:MM:SS.
+
+    Returns:
+        str: La hora actual en formato HH:MM:SS.
+    """
+    tiempo = datetime.now()
+    tiempo_actual = tiempo.strftime('%H:%M:%S')
+    return tiempo_actual
+
+
+#################################################################Doble factor autenticación
 def validar_token_telegram(request):
     if request.method == 'GET':
+        
         return render(request, 'validarToken.html')
     elif request.method == 'POST':
-        token_ingresado = request.POST.get('caracteres')
-        
-        if verificar_estado_de_token(token_ingresado):
-            return render(request, inicio.html)
-        else:
-            return render(request, f'El token {token_ingresado}')
-    
-#def verificar_estado_de_token(token_ingresado):
 
-#def genero_token_anteriormente():
+        token_ingresado = request.POST.get('caracteres')
+
+        usuario_sesion = request.session.get('usuario_iniciado')
+        token = request.session.get('token')
+
+        insertar_token_generador(usuario_sesion, token)
+
+        if not existe_token_en_sesion(token_ingresado, usuario_sesion):
+            ###continuar
+        sum = usuario_sesion + token
+        return HttpResponse(sum)
+        
+def insertar_token_generador(usuario_sesion, token):
+    usuario = usuario_sesion
+    tokens = token
+    tiempo = obtener_tiempo_horas_minutos()
+    estatus = True
+    enviar = True
+    
+    guardar_estado = models.TelegramData(usuario=usuario, tokens=tokens, tiempo=tiempo, estatus=estatus, enviar=enviar)
+    guardar_estado.save()
+
+    return token
+
+def existe_token_en_sesion(token_ingresado, usuario_sesion):
+    consultar=models.TelegramData.objects.filter(tokens=token_ingresado).exists()
+    if consultar:
+        return True
+    else:
+        return False
+
 
