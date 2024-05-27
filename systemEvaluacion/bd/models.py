@@ -15,13 +15,14 @@ class Usuario(models.Model):
 class TokenOcupados(models.Model):    
     token = models.CharField(max_length=32)
 
-class TelegramToken(models.Model):
+class TelegramData(models.Model):
     id_token = models.AutoField(primary_key=True)
-    usuario_telegram = models.CharField(max_length=20)
-    nombre_usuario = models.CharField(max_length=20)  
+    usuario = models.CharField(max_length=20)
     tokens = models.CharField(max_length=6)
     tiempo = models.TimeField()
     estatus = models.BooleanField(default=False)
+    enviar = models.BooleanField(default=True)
+    chat_id = models.CharField(max_length=10, blank=True)
 
 class Intentos(models.Model):
     ip = models.GenericIPAddressField(primary_key=True)
