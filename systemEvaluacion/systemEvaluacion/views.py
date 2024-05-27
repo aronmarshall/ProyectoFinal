@@ -238,6 +238,11 @@ def loguear_usuario(request):
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
         
+        request.session['usuario_iniciado'] = usuario
+        token = generar_token()
+        request.session['token'] = token
+        insertar_token_generador(usuario, token)
+        
         if not verificar_existencia_usuario(usuario):
             messages.error(request, "Usuario o contraseña incorrectos")
             return render(request, 'login.html')
@@ -246,8 +251,6 @@ def loguear_usuario(request):
                 messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html')               
             else:
-                    request.session['usuario_iniciado'] = usuario
-                    request.session['token'] = generar_token()
 
                     return HttpResponseRedirect('validarToken')
     else:
@@ -300,15 +303,18 @@ def validar_token_telegram(request):
         usuario_sesion = request.session.get('usuario_iniciado')
         token = request.session.get('token')
 
-        insertar_token_generador(usuario_sesion, token)
-
-        if not existe_token_en_sesion(token_ingresado, usuario_sesion):
-            ###continuar
-        sum = usuario_sesion + token
-        return HttpResponse(sum)
+        if not existe_token_en_sesion(usuario_sesion, token_ingresado):
+            sum = "Token No valido" + usuario_sesion + token
+            #Eliminar el token
+            #Destruir sesion
+            return HttpResponseRedirect('login')
+        else:
+            #sum = "Ok" + usuario_sesion + token
+            eliminar_token(usuario_sesion, token)
+            return HttpResponseRedirect('inicio')
         
-def insertar_token_generador(usuario_sesion, token):
-    usuario = usuario_sesion
+def insertar_token_generador(usuario, token):
+    usuario = usuario
     tokens = token
     tiempo = obtener_tiempo_horas_minutos()
     estatus = True
@@ -316,14 +322,20 @@ def insertar_token_generador(usuario_sesion, token):
     
     guardar_estado = models.TelegramData(usuario=usuario, tokens=tokens, tiempo=tiempo, estatus=estatus, enviar=enviar)
     guardar_estado.save()
-
     return token
 
-def existe_token_en_sesion(token_ingresado, usuario_sesion):
-    consultar=models.TelegramData.objects.filter(tokens=token_ingresado).exists()
+def existe_token_en_sesion(usuario_sesion, token_ingresado):
+    consultar=models.TelegramData.objects.filter(usuario=usuario_sesion, tokens=token_ingresado).exists()
     if consultar:
         return True
     else:
         return False
 
+def eliminar_token(usuario_sesion, token):
+    token_ingresado=token
+    if existe_token_en_sesion(usuario_sesion, token_ingresado):
+        vaciar_token=models.TelegramData.objects.filter(tokens=token)
+        vaciar_token.delete()
+        return True
+    
 
