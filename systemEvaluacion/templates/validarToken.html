@@ -4,6 +4,13 @@
 </head>
 
 <body>
+    {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     {% block formulario %}
         <form method="POST">
             {% csrf_token %}
