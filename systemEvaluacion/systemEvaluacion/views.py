@@ -5,9 +5,7 @@ from urllib import request
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
-from datetime import datetime
-from datetime import timezone
-
+from datetime import datetime, timedelta
 
 from bd import models
 from systemEvaluacion import settings
@@ -20,11 +18,18 @@ import crypt
 import requests
 import re
 import threading
+import pytz
 
 ###########################################################Arranque del bot
 bot_thread = threading.Thread(target=telegram.run_bot)
 bot_thread.daemon = True
 bot_thread.start()
+##########################################################Manejo de sesión
+
+def logout(request):
+    request.session['logueado'] = False
+    request.session.flush() # borra la sesión
+    return redirect('login')        
 
 ###########################################################Inicio
 def inicio(request):
@@ -304,14 +309,18 @@ def validar_token_telegram(request):
         token = request.session.get('token')
 
         if not existe_token_en_sesion(usuario_sesion, token_ingresado):
-            sum = "Token No valido" + usuario_sesion + token
             #Eliminar el token
             #Destruir sesion
+            eliminar_token(usuario_sesion, token)
             return HttpResponseRedirect('login')
         else:
-            #sum = "Ok" + usuario_sesion + token
-            eliminar_token(usuario_sesion, token)
-            return HttpResponseRedirect('inicio')
+            if not tiempo_valido(token):
+                messages.error(request, f'El token {token} ya expiro.')
+                eliminar_token(usuario_sesion, token)
+                return HttpResponseRedirect('login')
+            else:
+                eliminar_token(usuario_sesion, token)
+                return HttpResponseRedirect('inicio')
         
 def insertar_token_generador(usuario, token):
     usuario = usuario
@@ -338,4 +347,20 @@ def eliminar_token(usuario_sesion, token):
         vaciar_token.delete()
         return True
     
+def tiempo_valido(token):
+    tiempo_consultado=consultar_tiempo_almacenado(token)
+    tiempo_actual = datetime.now().time()
+    if tiempo_consultado:
+        diferencia_tiempo = (
+            tiempo_actual.hour * 3600 + tiempo_actual.minute * 60 + tiempo_actual.second
+        ) - (
+            tiempo_consultado.hour * 3600 + tiempo_consultado.minute * 60 + tiempo_consultado.second
+        )
+        if diferencia_tiempo > settings.TIEMPO_DE_VIDA_TOKEN * 60:
+            return False
+        else:
+            return True
 
+def consultar_tiempo_almacenado(token):
+    consulta_tiempo = models.TelegramData.objects.filter(tokens=token).values_list('tiempo', flat=True).first()
+    return consulta_tiempo
