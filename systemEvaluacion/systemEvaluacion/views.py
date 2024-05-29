@@ -5,7 +5,7 @@ from urllib import request
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bd import models
 from systemEvaluacion import settings
@@ -18,29 +18,35 @@ import crypt
 import requests
 import re
 import threading
-import pytz
 
-###########################################################Arranque del bot
+###########################################################Iniciamos el bot
 bot_thread = threading.Thread(target=telegram.run_bot)
 bot_thread.daemon = True
 bot_thread.start()
-##########################################################Manejo de sesión
 
-def logout(request):
+##########################################################Manejo de sesión
+def logout(request)->HttpResponse:
+    """Cierra la sesión del usuario actual.
+
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la sesión del usuario.
+
+    Returns:
+        HttpResponse: Redirige al usuario a la vista de inicio de sesión.
+    """
     request.session['logueado'] = False
-    request.session.flush() # borra la sesión
+    request.session.flush() 
     return redirect('login')        
 
 ###########################################################Inicio
-def inicio(request):
-    """_summary_
-    Renderiza la página de inicio.
-
+def inicio(request)->HttpResponse:
+    """
+    Renderizado la página de inicio.
     Esta vista maneja las solicitudes a la página de inicio de la aplicación.
     Utiliza la función render de Django para devolver la plantilla 'inicio.html'.
 
     Args:
-        request: Objeto HttpRequest que contiene los datos de la solicitud.
+        request (HttpRequest): Objeto HttpRequest que contiene los datos de la solicitud.
 
     Returns:
         HttpResponse: La respuesta HTTP con el contenido renderizado de la plantilla 'inicio.html'.
@@ -48,11 +54,10 @@ def inicio(request):
     return render(request, 'inicio.html')
 
 #########################################################Registro
-def registro_de_usuario(request):
+def registro_de_usuario(request)->HttpResponse:
     """
     Maneja el proceso de registro de un nuevo usuario.
-
-    - Si el método de la solicitud es GET, renderiza la página de registro.
+    - Si el método de la solicitud es GET, renderizado la página de registro.
     - Si el método de la solicitud es POST, procesa los datos del formulario para registrar al usuario.
 
     Args:
@@ -122,7 +127,6 @@ def existe_matricula_bd(matricula:str)->bool:
 
     Args:
         matricula (str): Matrícula a verificar.
-
     Returns:
         bool: True si la matrícula ya existe en la base de datos, False en caso contrario.
     """
@@ -178,11 +182,9 @@ def politica_de_contrasenia(contrasenia:str)->bool:
 def comparar_contrasenias(contrasenia:str, contrasenia_confirma:str)->bool:
     """
     Compara dos contraseñas para verificar si son iguales.
-
     Args:
         contrasenia (str): La primera contraseña.
         contrasenia_confirma (str): La segunda contraseña para confirmar.
-
     Returns:
         bool: True si las contraseñas son iguales, False en caso contrario.
     """
@@ -216,13 +218,31 @@ def generador_de_salt()->str:
     return valor_generado_salt
 
 def contrasenia_segura(contrasenia:str)->str:
+    """
+        Genera contraseñas seguras, consultando la función generador_de_salt() y la contraseña pasada por
+        el usuario.
+    Args:
+        contrasenia (str): Contraseña ingresada por el usuario
+
+    Returns:
+        str: Devuelve la variable hasheada 
+    """
     salt_generado=generador_de_salt()
     hasheado = crypt.crypt(contrasenia, '$6$' + salt_generado)
     return hasheado
 
-
 def insertar_datos_alumno_usuario(nombre_completo:str, matricula:str, usuario:str, contrasenia:str)->bool:
+    """
+        Inserta en la base de datos los datos pasados por el usuario para registrado.
+    Args:
+        nombre_completo (str): El nombre del usuario a registrar.
+        matricula (str): matricula válida pasa por el usuario.
+        usuario (str): El usuario pasado por el usuario que realiza el registro.
+        contrasenia (str): contrasenia generada de forma segura.
 
+    Returns:
+        bool: devuelve True si el insert fue éxito.
+    """
     nuevo_alumno = models.Alumno(nombre_completo=nombre_completo, matricula=matricula)
     nuevo_alumno.save()
     id_alumno = nuevo_alumno.id
@@ -232,9 +252,19 @@ def insertar_datos_alumno_usuario(nombre_completo:str, matricula:str, usuario:st
     nuevo_usuario.save()
     return True
 
-
 #########################################################Login
-def loguear_usuario(request):
+def loguear_usuario(request)->HttpResponseRedirect:
+    """
+    Función que permite loguear a un usuario en el sistema.
+
+    Args:
+        request (HttpRequestRedirect): El objeto de solicitud HTTP que contiene los datos de la solicitud del usuario.
+
+    Returns:
+        HttpResponseRedirect: Redirige a la página de validación de token si el inicio de sesión es exitoso.
+        Renderizado la página de inicio de sesión con un mensaje de error si falla el inicio de sesión.
+    """
+
     if request.method == 'GET':
         return render(request, 'login.html')
     
@@ -246,7 +276,6 @@ def loguear_usuario(request):
         request.session['usuario_iniciado'] = usuario
         token = generar_token()
         request.session['token'] = token
-        insertar_token_generador(usuario, token)
         
         if not verificar_existencia_usuario(usuario):
             messages.error(request, "Usuario o contraseña incorrectos")
@@ -256,13 +285,20 @@ def loguear_usuario(request):
                 messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html')               
             else:
-
-                    return HttpResponseRedirect('validarToken')
+                return HttpResponseRedirect('usuarioTelegram')
     else:
         return render(request, 'login.html')
 
-def consultar_hash(usuario:str, contrasenia:str)->bool: 
+def consultar_hash(usuario:str, contrasenia:str)->bool:
+    """
+        Consulta si el usuario y contraseña pasados son válidos en la base datos.
+    Args:
+        usuario (str): Nombre de usuario pasado por usuario.
+        contrasenia (str): Contraseña pasada por el usuario
 
+    Returns:
+        bool: Devuelve True, la contraseña hasheada es correcta, False en caso contrario.
+    """
     usuario = models.Usuario.objects.filter(usuario=usuario).first()
     hasheado = usuario.contrasenia.decode('utf-8')
     partes = hasheado.split('$')
@@ -272,8 +308,21 @@ def consultar_hash(usuario:str, contrasenia:str)->bool:
     else:
         return False
     
-#################################################################
-def generar_token() -> str:
+###########################################################Telegram y token
+def ingresar_usuario_telegram(request)->HttpResponseRedirect:
+
+    if request.method == 'GET':
+        return render(request, 'usuarioTelegram.html')
+    elif request.method == 'POST':
+
+        usuario_telegram = request.POST.get('usuario_telegram')
+        usuario = request.session.get('usuario_iniciado')
+        token = request.session.get('token')
+        insertar_token_generador(usuario, token, usuario_telegram)
+        return HttpResponseRedirect('validarToken')
+
+
+def generar_token()->str:
     """
     Genera un token aleatorio de 6 caracteres compuesto por letras mayúsculas y dígitos.
 
@@ -295,59 +344,120 @@ def obtener_tiempo_horas_minutos()->str:
     tiempo_actual = tiempo.strftime('%H:%M:%S')
     return tiempo_actual
 
-
 #################################################################Doble factor autenticación
-def validar_token_telegram(request):
+def validar_token_telegram(request)->HttpResponseRedirect:
+    """
+        Valida el token de autenticación enviado a través de Telegram.
+
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la solicitud del usuario.
+
+    Returns:
+        HttpResponseRedirect: Redirige a la página de inicio si la validación es exitosa, o a la página login de sesión si falla.
+    """
     if request.method == 'GET':
-        
         return render(request, 'validarToken.html')
     elif request.method == 'POST':
 
         token_ingresado = request.POST.get('caracteres')
-
         usuario_sesion = request.session.get('usuario_iniciado')
         token = request.session.get('token')
 
         if not existe_token_en_sesion(usuario_sesion, token_ingresado):
-            #Eliminar el token
-            #Destruir sesion
+            messages.error(request, f'El token {token} no es correcto.')
             eliminar_token(usuario_sesion, token)
+            request.session.flush()
+            purgar_tokens(usuario_sesion)
             return HttpResponseRedirect('login')
         else:
             if not tiempo_valido(token):
                 messages.error(request, f'El token {token} ya expiro.')
                 eliminar_token(usuario_sesion, token)
+                request.session.flush()
+                purgar_tokens(usuario_sesion)
                 return HttpResponseRedirect('login')
             else:
-                eliminar_token(usuario_sesion, token)
-                return HttpResponseRedirect('inicio')
-        
-def insertar_token_generador(usuario, token):
+                if token_ingresado == token:
+                    eliminar_token(usuario_sesion, token)
+                    purgar_tokens(usuario_sesion)
+                    return HttpResponseRedirect('inicio')
+                else:
+                    messages.error(request, f'El token {token} no es correcto.')
+                    eliminar_token(usuario_sesion, token)
+                    request.session.flush()
+                    purgar_tokens(usuario_sesion)
+                    return HttpResponseRedirect('login') 
+
+def insertar_token_generador(usuario:str, token:str, usuario_telegram:str)->str:
+    """
+        Inserta el token generado en la base de datos para el usuario especificado.
+
+    Args:
+        usuario (str): El nombre del usuario para el cual se genera el token.
+        token (str): El token generado que será almacenado en la base de datos.
+        usuario_telegram: El usuario de telegram. 
+    Returns:
+        str: El token generado.
+    """
     usuario = usuario
     tokens = token
     tiempo = obtener_tiempo_horas_minutos()
-    estatus = True
     enviar = True
+    usuario_telegram = usuario_telegram
     
-    guardar_estado = models.TelegramData(usuario=usuario, tokens=tokens, tiempo=tiempo, estatus=estatus, enviar=enviar)
+    guardar_estado = models.TelegramData(usuario=usuario, tokens=tokens, tiempo=tiempo, enviar=enviar, usuarioTelegram=usuario_telegram)
     guardar_estado.save()
     return token
 
-def existe_token_en_sesion(usuario_sesion, token_ingresado):
+def existe_token_en_sesion(usuario_sesion:str, token_ingresado:str)->bool:
+    """
+        Verifica si el token ingresado existe en la sesión del usuario.
+
+    Args:
+        usuario_sesion (str): El nombre del usuario que tiene la sesión activa.
+        token_ingresado (str): El token ingresado por el usuario para validación.
+
+    Returns:
+        bool: True si el token ingresado existe en la sesión del usuario, False en caso contrario.
+    """
     consultar=models.TelegramData.objects.filter(usuario=usuario_sesion, tokens=token_ingresado).exists()
     if consultar:
         return True
     else:
         return False
 
-def eliminar_token(usuario_sesion, token):
+def eliminar_token(usuario_sesion:str, token:str)->bool:
+    """
+        Elimina un token de la base de datos asociado al usuario especificado.
+
+    Args:
+        usuario_sesion (str): El nombre del usuario que tiene la sesión activa.
+        token (str): El token que se desea eliminar de la base de datos.
+
+    Returns:
+        bool: True si se elimina correctamente el token.
+    """
     token_ingresado=token
     if existe_token_en_sesion(usuario_sesion, token_ingresado):
         vaciar_token=models.TelegramData.objects.filter(tokens=token)
         vaciar_token.delete()
         return True
     
-def tiempo_valido(token):
+def purgar_tokens(usuario_sesion:str)->bool:
+    vaciar_token=models.TelegramData.objects.filter(usuario=usuario_sesion)
+    vaciar_token.delete()
+    return True
+
+def tiempo_valido(token:str)->bool:
+    """
+        Verifica si un token aún está dentro de su tiempo de validez.
+
+    Args:
+        token (str): El token cuyo tiempo de validez se desea verificar.
+
+    Returns:
+        bool: True si el token está dentro de su tiempo de validez, False si ha expirado.
+    """
     tiempo_consultado=consultar_tiempo_almacenado(token)
     tiempo_actual = datetime.now().time()
     if tiempo_consultado:
@@ -361,6 +471,15 @@ def tiempo_valido(token):
         else:
             return True
 
-def consultar_tiempo_almacenado(token):
+def consultar_tiempo_almacenado(token:str)->datetime:
+    """
+        Consulta el tiempo almacenado asociado a un token en la base de datos.
+
+    Args:
+        token (str): El token del cual se desea obtener el tiempo almacenado.
+
+    Returns:
+        datetime: El tiempo almacenado asociado al token.
+    """
     consulta_tiempo = models.TelegramData.objects.filter(tokens=token).values_list('tiempo', flat=True).first()
     return consulta_tiempo

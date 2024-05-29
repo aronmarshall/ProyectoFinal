@@ -25,5 +25,6 @@ urlpatterns = [
     path('login', vistas.loguear_usuario),
     path('inicio', vistas.inicio),
     path('registro', vistas.registro_de_usuario),
+    path('usuarioTelegram', vistas.ingresar_usuario_telegram),
     path('validarToken', vistas.validar_token_telegram),
 ]

@@ -1,0 +1,24 @@
+{% extends "baseLogReg.html" %}
+<head>
+    {% block encabezado %}<h1>usuario telegram</h1>{% endblock %}
+</head>
+
+<body>
+    {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% block formulario %}
+        <form method="POST">
+            {% csrf_token %}
+            <label>Ingresa tu usuario de telegram</label><br>
+            <input type="text" id="usuario_telegram" name="usuario_telegram"/>
+            <br>
+            <input type="submit" value="Siguiente"/>
+        </form>
+    {% endblock %}
+</body>
+
