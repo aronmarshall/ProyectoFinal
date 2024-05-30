@@ -136,14 +136,19 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#Tiempo de vida token
-TIEMPO_DE_VIDA_TOKEN = 3
-#Limite de intentos
+#######################################################################################Agregados
+#Limite de intentos y tiempo
 LIMITE_INTENTOS_LOGIN = 3
 LIMITE_SEGUNDOS_LOGIN = 60
+
+#Tiempo de vida token
+TIEMPO_DE_VIDA_TOKEN = 3
+
 #Manejo de sesión
-SESSION_COOKIE_AGE = 3600 # 1 hora
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True # se destruye la sesión si se cierra el navegador
+#1 hora
+SESSION_COOKIE_AGE = 3600 
+#Se destruye la sesión si se cierra el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #SESSION_COOKIE_SECURE = True # sólo en producción https
 SESSION_COOKIE_SAMESITE = 'Strict'

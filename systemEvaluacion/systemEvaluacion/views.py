@@ -1,11 +1,10 @@
 from pyexpat.errors import messages
 import secrets
 import string
-from urllib import request
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bd import models
 from systemEvaluacion import settings
@@ -15,7 +14,6 @@ from api import telegram
 import os
 import base64
 import crypt
-import requests
 import re
 import threading
 
@@ -24,34 +22,138 @@ bot_thread = threading.Thread(target=telegram.run_bot)
 bot_thread.daemon = True
 bot_thread.start()
 
-##########################################################Manejo de sesión
-def logout(request)->HttpResponse:
-    """Cierra la sesión del usuario actual.
+##########################################################Manejo de sesión (cierra sesión)
+def logout(request)->redirect:
+    """
+        Cierra la sesión del usuario actual y cambia la variable.
 
     Args:
         request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la sesión del usuario.
 
     Returns:
-        HttpResponse: Redirige al usuario a la vista de inicio de sesión.
+        HttpResponse: Redirige al usuario a la vista de inicio de sesión denominada login.
     """
     request.session['logueado'] = False
     request.session.flush() 
     return redirect('login')        
 
+###########################################################Manejo de ip (Limitar acceso)
+
+def obtener_ip_cliente(request)->str:
+    """
+        Obtiene la dirección IP del cliente a partir de la solicitud HTTP.
+
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene metadatos sobre la solicitud.
+
+    Returns:
+        str: La dirección IP del cliente que realizó la solicitud.
+    """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def actualizar_info_cliente(cliente:str, intentos:int=1)->None:
+    """
+        Actualiza la información del cliente en la base de datos con la fecha del último 
+        intento y el número de intentos.
+
+    Args:
+        cliente (str): El identificador o instancia del cliente que contiene la información del cliente.
+        intentos (int, optional): El número de intentos de inicio de sesión. Por defecto es 1.
+
+    Returns:
+        None
+    """
+    fecha = datetime.now(timezone.utc)
+    cliente.fecha_ultimo_intento = fecha
+    cliente.intentos = intentos
+    cliente.save() 
+
+def registrar_cliente(ip: str) -> None:
+    """
+        Registra un nuevo cliente en la base de datos con la IP proporcionada, 
+        estableciendo el número de intentos en 1 y la fecha del último intento a la fecha y hora actuales.
+
+    Args:
+        ip (str): La dirección IP del cliente.
+
+    Returns:
+        None
+    """
+    fecha = datetime.now(timezone.utc)
+    registro = models.Intentos(ip=ip, intentos=1,
+                    fecha_ultimo_intento=fecha)
+    registro.save()
+
+def ventana_de_tiempo(tiempo_ultimo_intento:datetime, ventana: int) -> bool:
+    """
+        Determina si una fecha dada está dento de la ventana
+        de tiempo dada de acuerdo a la fecha actual
+    Args:
+        tiempo_ultimo_intento (datetime): fecha-hora a evaluar.
+        ventana (int): Tiempo expresado en segundos.
+
+    Returns:
+        bool: True si está dentro de la ventana, en caso contrario False.
+    """
+    actual = datetime.now(timezone.utc)
+    diferencia = (actual - tiempo_ultimo_intento).seconds
+    if diferencia <= ventana:
+        return True
+    return False
+
+def puede_loguearse(request) -> bool:
+    """
+        Verifica si un cliente puede iniciar sesión basándose en su dirección IP,
+        la fecha del último intento de inicio de sesión y el número de 
+        intentos realizados.
+
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la solicitud del cliente.
+
+    Returns:
+        bool: True si el cliente puede iniciar sesión, False si ha excedido los límites de intentos permitidos.
+    """
+    ip = obtener_ip_cliente(request)
+    try:
+        cliente = models.Intentos.objects.get(ip=ip)
+        if not ventana_de_tiempo(cliente.fecha_ultimo_intento,
+                        settings.LIMITE_SEGUNDOS_LOGIN):
+            actualizar_info_cliente(cliente)
+            return True
+        # Está en la ventana y ya lo conocemos
+        if cliente.intentos >= settings.LIMITE_INTENTOS_LOGIN:
+            actualizar_info_cliente(cliente, cliente.intentos)
+            return False
+        else: # estoy en ventana y tengo intentos
+            actualizar_info_cliente(cliente, cliente.intentos + 1)
+            return True
+        
+    except: # nunca se ha visto al cliente
+        registrar_cliente(ip)
+        return True
+    
+
+
 ###########################################################Inicio
 def inicio(request)->HttpResponse:
     """
-    Renderizado la página de inicio.
-    Esta vista maneja las solicitudes a la página de inicio de la aplicación.
-    Utiliza la función render de Django para devolver la plantilla 'inicio.html'.
+        Redirige a la página de inicio si el usuario está logueado, de lo contrario redirige a la página de login.
 
     Args:
-        request (HttpRequest): Objeto HttpRequest que contiene los datos de la solicitud.
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la sesión del usuario.
 
     Returns:
-        HttpResponse: La respuesta HTTP con el contenido renderizado de la plantilla 'inicio.html'.
-    """
-    return render(request, 'inicio.html')
+        HttpResponse: La respuesta HTTP que redirige a la página de inicio o a la página de login.
+    """    
+    if not request.session.get('logueado'):
+        return redirect('/login')
+    else:
+        return render(request, 'inicio.html')
 
 #########################################################Registro
 def registro_de_usuario(request)->HttpResponse:
@@ -255,24 +357,24 @@ def insertar_datos_alumno_usuario(nombre_completo:str, matricula:str, usuario:st
 #########################################################Login
 def loguear_usuario(request)->HttpResponseRedirect:
     """
-    Función que permite loguear a un usuario en el sistema.
+        Maneja el proceso de inicio de sesión del usuario.
 
     Args:
-        request (HttpRequestRedirect): El objeto de solicitud HTTP que contiene los datos de la solicitud del usuario.
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la sesión y la solicitud.
 
     Returns:
-        HttpResponseRedirect: Redirige a la página de validación de token si el inicio de sesión es exitoso.
-        Renderizado la página de inicio de sesión con un mensaje de error si falla el inicio de sesión.
+        HttpResponseRedirect: Redirige al usuario a la página de validación del token de Telegram si el inicio de sesión es exitoso.
     """
-
-    if request.method == 'GET':
+    if request.method == 'GET':        
         return render(request, 'login.html')
     
     elif request.method == 'POST':
-
+        if not puede_loguearse(request):
+                    messages.error(request, 'Agotaste tu límite de intentos, debes esperar %s segundos' % settings.LIMITE_SEGUNDOS_LOGIN)
+                    return render(request, 'login.html')
+        
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
-        
         request.session['usuario_iniciado'] = usuario
         token = generar_token()
         request.session['token'] = token
@@ -287,6 +389,7 @@ def loguear_usuario(request)->HttpResponseRedirect:
             else:
                 return HttpResponseRedirect('usuarioTelegram')
     else:
+        messages.error(request, "Método no soportado")
         return render(request, 'login.html')
 
 def consultar_hash(usuario:str, contrasenia:str)->bool:
@@ -310,7 +413,16 @@ def consultar_hash(usuario:str, contrasenia:str)->bool:
     
 ###########################################################Telegram y token
 def ingresar_usuario_telegram(request)->HttpResponseRedirect:
+    """
+    Procesa el ingreso de un usuario de Telegram en la aplicación.
 
+    Parameters:
+        request (HttpRequest): Objeto HttpRequest que representa la solicitud HTTP.
+
+    Returns:
+        HttpResponseRedirect: Redirecciona a la página 'validarToken' después de procesar la solicitud.
+
+    """
     if request.method == 'GET':
         return render(request, 'usuarioTelegram.html')
     elif request.method == 'POST':
@@ -320,7 +432,6 @@ def ingresar_usuario_telegram(request)->HttpResponseRedirect:
         token = request.session.get('token')
         insertar_token_generador(usuario, token, usuario_telegram)
         return HttpResponseRedirect('validarToken')
-
 
 def generar_token()->str:
     """
@@ -380,7 +491,8 @@ def validar_token_telegram(request)->HttpResponseRedirect:
                 if token_ingresado == token:
                     eliminar_token(usuario_sesion, token)
                     purgar_tokens(usuario_sesion)
-                    return HttpResponseRedirect('inicio')
+                    request.session['logueado'] = True
+                    return redirect('/inicio')
                 else:
                     messages.error(request, f'El token {token} no es correcto.')
                     eliminar_token(usuario_sesion, token)
@@ -444,6 +556,16 @@ def eliminar_token(usuario_sesion:str, token:str)->bool:
         return True
     
 def purgar_tokens(usuario_sesion:str)->bool:
+    """
+    Elimina todos los tokens asociados a un usuario de sesión de Telegram de la base de datos.
+
+    Parameters:
+        usuario_sesion (str): Nombre de usuario de sesión de Telegram cuyos tokens se eliminarán.
+
+    Returns:
+        bool: True si la operación de eliminación fue exitosa, False si ocurrió algún error.
+
+    """
     vaciar_token=models.TelegramData.objects.filter(usuario=usuario_sesion)
     vaciar_token.delete()
     return True
