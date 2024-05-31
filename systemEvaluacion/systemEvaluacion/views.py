@@ -34,8 +34,10 @@ def logout(request)->redirect:
         HttpResponse: Redirige al usuario a la vista de inicio de sesión denominada login.
     """
     request.session['logueado'] = False
+    request.session['token_doble'] = False
+    request.session['ingreso_usuario'] = False
     request.session.flush() 
-    return redirect('login')        
+    return redirect('/login')        
 
 ###########################################################Manejo de ip (Limitar acceso)
 
@@ -387,6 +389,8 @@ def loguear_usuario(request)->HttpResponseRedirect:
                 messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html')               
             else:
+                #####################
+                request.session['token_doble'] = True
                 return HttpResponseRedirect('usuarioTelegram')
     else:
         messages.error(request, "Método no soportado")
@@ -423,15 +427,19 @@ def ingresar_usuario_telegram(request)->HttpResponseRedirect:
         HttpResponseRedirect: Redirecciona a la página 'validarToken' después de procesar la solicitud.
 
     """
-    if request.method == 'GET':
-        return render(request, 'usuarioTelegram.html')
-    elif request.method == 'POST':
+    if not request.session.get('token_doble'):
+        return redirect('/login')
+    else:
+        if request.method == 'GET':
+            return render(request, 'usuarioTelegram.html')
+        elif request.method == 'POST':
 
-        usuario_telegram = request.POST.get('usuario_telegram')
-        usuario = request.session.get('usuario_iniciado')
-        token = request.session.get('token')
-        insertar_token_generador(usuario, token, usuario_telegram)
-        return HttpResponseRedirect('validarToken')
+            usuario_telegram = request.POST.get('usuario_telegram')
+            usuario = request.session.get('usuario_iniciado')
+            token = request.session.get('token')
+            insertar_token_generador(usuario, token, usuario_telegram)
+            request.session['ingreso_usuario'] = True 
+            return HttpResponseRedirect('validarToken')
 
 def generar_token()->str:
     """
@@ -466,39 +474,40 @@ def validar_token_telegram(request)->HttpResponseRedirect:
     Returns:
         HttpResponseRedirect: Redirige a la página de inicio si la validación es exitosa, o a la página login de sesión si falla.
     """
-    if request.method == 'GET':
-        return render(request, 'validarToken.html')
-    elif request.method == 'POST':
+    if not request.session.get('token_doble'):
+        return redirect('/login')
+    elif not request.session.get('ingreso_usuario'):
+        return render(request, 'usuarioTelegram.html')        
+    else:
+        if request.method == 'GET':
+            return render(request, 'validarToken.html')
+        elif request.method == 'POST':
 
-        token_ingresado = request.POST.get('caracteres')
-        usuario_sesion = request.session.get('usuario_iniciado')
-        token = request.session.get('token')
+            token_ingresado = request.POST.get('caracteres')
+            usuario_sesion = request.session.get('usuario_iniciado')
+            token = request.session.get('token')
 
-        if not existe_token_en_sesion(usuario_sesion, token_ingresado):
-            messages.error(request, f'El token {token} no es correcto.')
-            eliminar_token(usuario_sesion, token)
-            request.session.flush()
-            purgar_tokens(usuario_sesion)
-            return HttpResponseRedirect('login')
-        else:
-            if not tiempo_valido(token):
-                messages.error(request, f'El token {token} ya expiro.')
-                eliminar_token(usuario_sesion, token)
+            if not existe_token_en_sesion(usuario_sesion, token_ingresado):
+                messages.error(request, f'El token "{token_ingresado}" no existe correcto.')
                 request.session.flush()
                 purgar_tokens(usuario_sesion)
                 return HttpResponseRedirect('login')
             else:
-                if token_ingresado == token:
-                    eliminar_token(usuario_sesion, token)
-                    purgar_tokens(usuario_sesion)
-                    request.session['logueado'] = True
-                    return redirect('/inicio')
-                else:
-                    messages.error(request, f'El token {token} no es correcto.')
+                if not tiempo_valido(token):
+                    messages.error(request, f'El token "{token}" ya expiro.')
                     eliminar_token(usuario_sesion, token)
                     request.session.flush()
-                    purgar_tokens(usuario_sesion)
-                    return HttpResponseRedirect('login') 
+                    return HttpResponseRedirect('login')
+                else:
+                    if token_ingresado == token:
+                        eliminar_token(usuario_sesion, token)
+                        request.session['logueado'] = True
+                        return redirect('/inicio')
+                    else:
+                        messages.error(request, f'El token "{token_ingresado}" no es correcto.')
+                        eliminar_token(usuario_sesion, token)
+                        request.session.flush()
+                        return HttpResponseRedirect('login') 
 
 def insertar_token_generador(usuario:str, token:str, usuario_telegram:str)->str:
     """

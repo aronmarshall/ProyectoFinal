@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block encabezado %}
+    <form method="POST" action="cerrarsesion">
+        {% csrf_token %}
+        <input type="submit" value="Cerra sesion"/>
+    </form>
+
+{% endblock %}
 
 {% block contenido%}<h1>Bienvenido</h1><br> 
                     <h2>Facultada De Estadística E Informática</h2><br>

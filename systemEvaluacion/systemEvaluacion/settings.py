@@ -152,3 +152,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 #SESSION_COOKIE_SECURE = True # sólo en producción https
 SESSION_COOKIE_SAMESITE = 'Strict'
+
+##http only
+
+SESSION_COOKIE_HTTPONLY = True
