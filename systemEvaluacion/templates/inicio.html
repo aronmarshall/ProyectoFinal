@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% block encabezado %}
-    <form method="POST" action="cerrarsesion">
-        {% csrf_token %}
-        <input type="submit" value="Cerra sesion"/>
-    </form>
-
+<form method="post" action=/logout>
+    {% csrf_token %}
+    <button type="submit">Cerrar Sesión</button>
+</form>
 {% endblock %}
 
 {% block contenido%}<h1>Bienvenido</h1><br> 

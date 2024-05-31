@@ -1,6 +1,4 @@
 from pyexpat.errors import messages
-import secrets
-import string
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -16,6 +14,8 @@ import base64
 import crypt
 import re
 import threading
+import secrets
+import string
 
 ###########################################################Iniciamos el bot
 bot_thread = threading.Thread(target=telegram.run_bot)
@@ -23,7 +23,7 @@ bot_thread.daemon = True
 bot_thread.start()
 
 ##########################################################Manejo de sesión (cierra sesión)
-def logout(request)->redirect:
+def logout(request)->HttpResponseRedirect:
     """
         Cierra la sesión del usuario actual y cambia la variable.
 
@@ -34,10 +34,8 @@ def logout(request)->redirect:
         HttpResponse: Redirige al usuario a la vista de inicio de sesión denominada login.
     """
     request.session['logueado'] = False
-    request.session['token_doble'] = False
-    request.session['ingreso_usuario'] = False
     request.session.flush() 
-    return redirect('/login')        
+    return redirect('/login')
 
 ###########################################################Manejo de ip (Limitar acceso)
 
@@ -311,14 +309,8 @@ def generador_de_salt()->str:
     Returns:
         str: El valor de salt generado y codificado en base64.
     """
-    while True:
-        valor_aleatorio = os.urandom(16)
-        valor_generado_salt = base64.b64encode(valor_aleatorio).decode('utf-8')
-        existe_salt_generado = models.TokenOcupados.objects.filter(token=valor_generado_salt).exists()
-        if not existe_salt_generado:
-            salt_guardado = models.TokenOcupados(token=valor_generado_salt)
-            salt_guardado.save()
-            break
+    valor_aleatorio = os.urandom(16)
+    valor_generado_salt = base64.b64encode(valor_aleatorio).decode('utf-8')
     return valor_generado_salt
 
 def contrasenia_segura(contrasenia:str)->str:
@@ -367,7 +359,8 @@ def loguear_usuario(request)->HttpResponseRedirect:
     Returns:
         HttpResponseRedirect: Redirige al usuario a la página de validación del token de Telegram si el inicio de sesión es exitoso.
     """
-    if request.method == 'GET':        
+    if request.method == 'GET': 
+
         return render(request, 'login.html')
     
     elif request.method == 'POST':
