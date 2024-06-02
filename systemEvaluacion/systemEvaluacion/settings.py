@@ -74,12 +74,6 @@ WSGI_APPLICATION = 'systemEvaluacion.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-#}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -150,9 +144,8 @@ SESSION_COOKIE_AGE = 3600
 #Se destruye la sesión si se cierra el navegador
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-#SESSION_COOKIE_SECURE = True # sólo en producción https
+#SESSION_COOKIE_SECURE = True sólo en producción https
 SESSION_COOKIE_SAMESITE = 'Strict'
 
-##http only
-
+#http only
 SESSION_COOKIE_HTTPONLY = True
