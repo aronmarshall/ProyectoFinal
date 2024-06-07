@@ -22,7 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_KEY')
-
+RECAPTCHA_PUBLIC_KEY = os.environ.get('PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG')
 
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bd',
+    'captcha',
 ]
 
 MIDDLEWARE = [

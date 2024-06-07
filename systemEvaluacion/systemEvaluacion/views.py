@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from bd import models
 from systemEvaluacion import settings
 from api import telegram
-
+from api import recaptcha
 
 import os
 import base64
@@ -23,7 +23,7 @@ bot_thread.daemon = True
 bot_thread.start()
 
 ##########################################################Manejo de sesión (cierra sesión)
-def logout(request)->HttpResponseRedirect:
+def logout(request)->redirect:
     """
         Cierra la sesión del usuario actual y cambia la variable.
 
@@ -154,7 +154,20 @@ def inicio(request)->HttpResponse:
         return redirect('/login')
     else:
         return render(request, 'inicio.html')
+def inicio_maestro(request)->HttpResponse:
+    """
+        Redirige a la página de inicio si el usuario está logueado, de lo contrario redirige a la página de login.
 
+    Args:
+        request (HttpRequest): El objeto de solicitud HTTP que contiene los datos de la sesión del usuario.
+
+    Returns:
+        HttpResponse: La respuesta HTTP que redirige a la página de inicio o a la página de login.
+    """    
+    if not request.session.get('logueado'):
+        return redirect('/login')
+    else:
+        return render(request, 'inicio_maestro.html')
 #########################################################Registro
 def registro_de_usuario(request)->HttpResponse:
     """
@@ -361,7 +374,7 @@ def loguear_usuario(request)->HttpResponseRedirect:
     """
     if request.method == 'GET': 
 
-        return render(request, 'login.html')
+        return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
     
     elif request.method == 'POST':
         if not puede_loguearse(request):
@@ -370,24 +383,33 @@ def loguear_usuario(request)->HttpResponseRedirect:
         
         usuario = request.POST.get('login_usuario')
         contrasenia = request.POST.get('login_contrasenia')
+        
+        ingresado_captcha = request.POST.get('g-recaptcha-response')
+        api_cap = recaptcha.verifica_captchat_web(ingresado_captcha)
+
+        if not api_cap['success']:
+            messages.error(request, f'Error captcha no válido')
+            return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
+        
         request.session['usuario_iniciado'] = usuario
         token = generar_token()
         request.session['token'] = token
         
         if not verificar_existencia_usuario(usuario):
             messages.error(request, "Usuario o contraseña incorrectos")
-            return render(request, 'login.html')
+            return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
         else:
             if not consultar_hash(usuario, contrasenia):
                 messages.error(request, "Usuario o contraseña incorrectos")
-                return render(request, 'login.html')               
+                return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
             else:
                 #####################
                 request.session['token_doble'] = True
                 return HttpResponseRedirect('usuarioTelegram')
+                #####################            
     else:
         messages.error(request, "Método no soportado")
-        return render(request, 'login.html')
+        return render(request, 'login.html', {'publica': settings.PUBLIC_KEY})
 
 def consultar_hash(usuario:str, contrasenia:str)->bool:
     """
@@ -407,7 +429,9 @@ def consultar_hash(usuario:str, contrasenia:str)->bool:
         return True
     else:
         return False
-    
+
+
+
 ###########################################################Telegram y token
 def ingresar_usuario_telegram(request)->HttpResponseRedirect:
     """
@@ -495,7 +519,10 @@ def validar_token_telegram(request)->HttpResponseRedirect:
                     if token_ingresado == token:
                         eliminar_token(usuario_sesion, token)
                         request.session['logueado'] = True
-                        return redirect('/inicio')
+                        if consultar_maestro_usuario(usuario_sesion):
+                            return redirect('/inicio_maestro')
+                        else:
+                            return redirect('/inicio')
                     else:
                         messages.error(request, f'El token "{token_ingresado}" no es correcto.')
                         eliminar_token(usuario_sesion, token)
@@ -607,3 +634,10 @@ def consultar_tiempo_almacenado(token:str)->datetime:
     """
     consulta_tiempo = models.TelegramData.objects.filter(tokens=token).values_list('tiempo', flat=True).first()
     return consulta_tiempo
+##F
+def consultar_maestro_usuario(usuario_sesion:str)->bool:
+    consultar_maestro = models.Usuario.objects.filter(usuario=usuario_sesion, alumno_id__isnull=True).exists()
+    if consultar_maestro:
+        return True
+    else:
+        return False

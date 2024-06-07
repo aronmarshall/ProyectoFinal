@@ -10,10 +10,8 @@ class Usuario(models.Model):
     idRegistro = models.AutoField(primary_key=True)
     usuario = models.CharField(max_length=20)
     contrasenia = models.BinaryField(max_length=64)
-    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
+    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, null=True, blank=True)
 
-class TokenOcupados(models.Model):    
-    token = models.CharField(max_length=32)
 
 class TelegramData(models.Model):
     id_token = models.AutoField(primary_key=True)

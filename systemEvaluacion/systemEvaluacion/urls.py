@@ -24,6 +24,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='login')),
     path('login', vistas.loguear_usuario),
     path('inicio', vistas.inicio),
+    path('inicio_maestro', vistas.inicio_maestro),
     path('registro', vistas.registro_de_usuario),
     path('usuarioTelegram', vistas.ingresar_usuario_telegram),
     path('validarToken', vistas.validar_token_telegram),

@@ -1,6 +1,7 @@
 {% extends "baseLogReg.html" %}
     <head>
         {% block titulo %}Inicio de sesión{% endblock %}
+        
     </head>
     
     <body>
@@ -23,13 +24,16 @@
                         <input type="text" id="login_usuario" name="login_usuario" required/><br>
                         <label for="login_contrasenia">Contraseña:</label><br>
                         <input type="password" id="login_contrasenia" name="login_contrasenia" required/><br>
-                        {{ ip }}
+                        <div class="d-flex justify-content-center">
+                            <div class="g-recaptcha" data-sitekey="{{ publica }}"></div>
+                        </div>                        
                         <br>
                         <input type="submit" value="Aceptar"/><br>
                         <br>
                         <a class="navbar-brand" href="registro">¿No tienes cuenta?</a><br>
                 </form>
             {% endblock %}
+            
         </section>
     </body>
 </html>
