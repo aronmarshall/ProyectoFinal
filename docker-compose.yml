@@ -2,7 +2,10 @@ version: '3.7'
 
 services:
   app:
-    build:
+     image: app_segura24
+     #build: ./contenedor
+     volumes:
+         - ./contenedor/app:/code
       args:
         user: seguro
         uid: 1001
