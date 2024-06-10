@@ -1,0 +1,65 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      args:
+        user: seguro
+        uid: 1001
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DJANGO_KEY: ${DJANGO_KEY}
+      BD_NAME: ${BD_NAME}
+      BD_USER: root ##Proteger usuario
+      BD_PASSWORD: ${BD_PASSWORD}
+      BD_HOST: bd
+      BD_PORT: ${BD_PORT}
+      PUBLIC_KEY: ${PUBLIC_KEY}
+      PRIVATE_KEY: ${PRIVATE_KEY} 
+
+    image: evaluador:1.0
+    restart: always
+    container_name: app-A
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./app/app:/app
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - bd
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1024M"
+  bd:
+    image: mariadb
+    container_name: bd-A
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${BD_NAME}
+      MYSQL_ROOT_PASSWORD: ${BD_PASSWORD}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1024M"
+
+  nginx:
+    image: nginx
+    restart: always
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    ports:
+      - 80:80
+      - 443:443
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1024M"

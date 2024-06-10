@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block encabezado %}
+<form method="post" action=/logout>
+    {% csrf_token %}
+    <button type="submit">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido%}<h1>Ejericios de clase</h1><br> 
+                    <h2>"Ciencia, Arte y Luz"</h2><br>
+                    
+{% endblock %}
