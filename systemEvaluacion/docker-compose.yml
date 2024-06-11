@@ -24,7 +24,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./app/app:/app
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - bd
     deploy:
@@ -55,7 +54,7 @@ services:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - ./config/certs:/certs
       - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./app/proyectoPrograSegura/static:/static
+      - ./app/app/static:/static
     depends_on:
       - app
     ports:

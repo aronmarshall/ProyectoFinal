@@ -33,7 +33,5 @@ RUN chown -R $user /code
 RUN chmod -R 500 /code 
 RUN chown -R $user /app
 RUN gpasswd -a $user docker
-# RUN (echo soptec1035; echo soptec1035) | passwd $user
-#USER $user
 
 CMD /bin/bash -c '/code/start.sh' && /bin/bash
