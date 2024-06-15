@@ -40,3 +40,4 @@ typer==0.2.1
 typing_extensions==4.11.0
 urllib3==2.1.0
 wheel==0.34.2
+

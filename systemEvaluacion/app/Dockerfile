@@ -10,6 +10,7 @@ RUN pip3 install -r requirements.txt
 
 RUN apt-get update && apt-get install docker docker-compose -y
 
+ENV DEBUG=""
 ENV DJANGO_KEY=""
 ENV BD_NAME=""
 ENV BD_USER=""
