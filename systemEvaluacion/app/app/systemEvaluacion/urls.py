@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
 import systemEvaluacion.views as vistas
+import tareasMaestro.views as vistasDos
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
@@ -26,8 +27,12 @@ urlpatterns = [
     path('inicio', vistas.inicio),
     path('inicio_maestro', vistas.inicio_maestro),
     path('registro', vistas.registro_de_usuario),
+    path('registroMaestro', vistas.registro_de_maestros),   
     path('usuarioTelegram', vistas.ingresar_usuario_telegram),
     path('validarToken', vistas.validar_token_telegram),
     path('logout', vistas.logout),
+
+    path('crearTarea', vistasDos.crear_tarea),
+    
 
 ]

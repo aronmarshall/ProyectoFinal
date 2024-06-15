@@ -136,8 +136,6 @@ def puede_loguearse(request) -> bool:
     except: # nunca se ha visto al cliente
         registrar_cliente(ip)
         return True
-    
-
 
 ###########################################################Inicio
 def inicio(request)->HttpResponse:
@@ -152,6 +150,8 @@ def inicio(request)->HttpResponse:
     """    
     if not request.session.get('logueado'):
         return redirect('/login')
+    elif request.session.get('maestro'):
+        return redirect('/inicio_maestro')
     else:
         return render(request, 'inicio.html')
 def inicio_maestro(request)->HttpResponse:
@@ -166,9 +166,41 @@ def inicio_maestro(request)->HttpResponse:
     """    
     if not request.session.get('logueado'):
         return redirect('/login')
+    elif not request.session.get('maestro'):
+        return redirect('/inicio')
     else:
         return render(request, 'inicio_maestro.html')
 #########################################################Registro
+def registro_de_maestros(request)->HttpResponse:
+    if request.method == 'GET':
+        return render(request, 'registroMaestro.html')
+    elif request.method == 'POST':
+        usuario = request.POST.get('usuario_nuevo')
+        contrasenia = request.POST.get('contrasenia')
+        contrasenia_confirma = request.POST.get('contrasenia_confirma')
+
+        if not politica_de_contrasenia(contrasenia):
+            messages.info(request, f'Lo siento, la contraseña debe contener mínimo 10 carácteres, mayúsculas, minúsuclas, dígitos, al menos un carácter especial.')
+            return render(request, 'registroMaestro.html')
+        else:
+            if not comparar_contrasenias(contrasenia, contrasenia_confirma):
+                messages.info(request, 'Las contraseñas no son iguales.')
+                return render(request, 'registroMaestro.html')
+            else:
+                if not insertar_maestro(usuario, contrasenia):
+                    messages.error(request, f'No se concreto la creación.')
+                    return render(request, 'registroMaestro.html')
+                else:
+                    messages.info(request, f'Se creo con éxito el maestro.')
+                    return render(request, 'registroMaestro.html')
+
+def insertar_maestro(usuario, contrasenia)->bool:
+    contrasenia=contrasenia
+    hasheado=contrasenia_segura(contrasenia)
+    nuevo_maestro = models.Usuario(usuario=usuario, contrasenia=hasheado.encode())
+    nuevo_maestro.save()
+    return True
+
 def registro_de_usuario(request)->HttpResponse:
     """
     Maneja el proceso de registro de un nuevo usuario.
@@ -214,10 +246,10 @@ def registro_de_usuario(request)->HttpResponse:
                         else:
                             if not insertar_datos_alumno_usuario(nombre_completo, matricula, 
                                                                 usuario, contrasenia):
-                                messages.error(request, 'No se concreto la creación.')
+                                messages.error(request, f'No se concreto la creación.')
                                 return render(request, 'registro.html')
                             else:
-                                messages.info(request, f'Se creo con éxito el usuario {usuario}.')
+                                messages.info(request, f'Se creo con éxito el usuario.')
                                 return render(request, 'registro.html')
 
 def verificar_existencia_usuario(usuario:str)->bool:
@@ -396,11 +428,11 @@ def loguear_usuario(request)->HttpResponseRedirect:
         request.session['token'] = token
         
         if not verificar_existencia_usuario(usuario):
-            messages.error(request, "Usuario o contraseña incorrectos")
+            messages.error(request, "Usuario o contraseña incorrectos 1")
             return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
         else:
             if not consultar_hash(usuario, contrasenia):
-                messages.error(request, "Usuario o contraseña incorrectos")
+                messages.error(request, "Usuario o contraseña incorrectos 2")
                 return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
             else:
                 #####################
@@ -520,8 +552,10 @@ def validar_token_telegram(request)->HttpResponseRedirect:
                         eliminar_token(usuario_sesion, token)
                         request.session['logueado'] = True
                         if consultar_maestro_usuario(usuario_sesion):
+                            request.session['maestro'] = True 
                             return redirect('/inicio_maestro')
                         else:
+                            request.session['maestro'] = False 
                             return redirect('/inicio')
                     else:
                         messages.error(request, f'El token "{token_ingresado}" no es correcto.')
@@ -634,7 +668,6 @@ def consultar_tiempo_almacenado(token:str)->datetime:
     """
     consulta_tiempo = models.TelegramData.objects.filter(tokens=token).values_list('tiempo', flat=True).first()
     return consulta_tiempo
-##F
 def consultar_maestro_usuario(usuario_sesion:str)->bool:
     consultar_maestro = models.Usuario.objects.filter(usuario=usuario_sesion, alumno_id__isnull=True).exists()
     if consultar_maestro:
