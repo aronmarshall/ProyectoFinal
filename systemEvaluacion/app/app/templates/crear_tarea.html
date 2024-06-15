@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block encabezado %}
+<form method="post" action=/logout>
+    {% csrf_token %}
+    <button type="submit">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido%}<h1>Crear nueva tarea</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <label>Nombre del ejercicio:</label><br>
+            <input type="text" id="nombre_eje" name="nombre_eje" required/><br>
+            <label>Descripción:</label><br>
+            <input type="text" id="descripcion" name="descripcion" required/><br>
+            <label>Entrada esperada:</label><br>
+            <input type="file" id="entrada" name="entrada" required/><br>
+            <label>Salida esperada:</label><br>
+            <input type="file" id="salida" name="salida" required/><br>
+            <label>Entrada ejemplo:</label><br>
+            <input type="file" id="entrada_ejemplo" name="entrada_ejemplo" required/><br>
+            <label>Salida ejemplo:</label><br>
+            <input type="file" id="salida_ejemplo" name="salida_ejemplo" required/><br>
+
+            <input type="submit" value="Registrar"/>
+        </form>
+
+                    
+{% endblock %}

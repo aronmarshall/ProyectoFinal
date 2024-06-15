@@ -32,7 +32,9 @@ urlpatterns = [
     path('validarToken', vistas.validar_token_telegram),
     path('logout', vistas.logout),
 
-    path('crearTarea', vistasDos.crear_tarea),
+    path('crear_tarea', vistasDos.crear_tarea),
+    path('listar_mis_tareas', vistasDos.listar_mis_tareas),
+    path('respuestas_estudiantes', vistasDos.respuestas_estudiantes),
     
 
 ]

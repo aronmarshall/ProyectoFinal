@@ -26,4 +26,10 @@ class Intentos(models.Model):
     intentos = models.PositiveIntegerField()
     fecha_ultimo_intento = models.DateTimeField()
 
-
+#class crear_tarea(models.Model):
+#    nombre = models.CharField(max_length=255)
+#    descripcion_general = models.TextField()
+#    archivo_entrada = models.FileField(upload_to=upload_to)
+#    archivo_salida_esperada = models.FileField(upload_to=upload_to)
+#    archivo_entrada_ejemplo = models.FileField(upload_to=upload_to)
+#    archivo_salida_ejemplo = models.FileField(upload_to=upload_to)
