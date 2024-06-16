@@ -23,7 +23,8 @@ def crear_tarea(request):
     if request.method == 'GET':
         return render(request, 'crear_tarea.html')
     elif request.method == 'POST':
-        id_tarea=90
+        cadena_numeros = nrc()
+        id_tarea=cadena_numeros
         nombre_eje = request.POST.get('nombre_eje')
         descripcion = request.POST.get('descripcion')
         entrada = request.POST.get('entrada')
@@ -34,21 +35,11 @@ def crear_tarea(request):
             entrada_esperada=entrada, salida_esperada=salida, archivo_evaluar=salida_ejemplo)
         insertar_datos.save()
 
-        messages.info(request, f'Se inserto.{insertar_datos}')
-        return render(request, 'crear_tarea.html')
+        messages.info(request, f'Se inserto la actividad {nombre_eje}')
+        return render(request, 'inicio_maestro.html')
 
-def aleatoria(vueltas: int) -> str:
-    resultados = []
-    for _ in range(vueltas):
-        p = os.urandom(8)  # Generamos 8 bytes para obtener un número entero de 64 bits
-        valor_nrc = struct.unpack('<Q', p)[0]  # Desempaquetamos los bytes como un entero sin signo de 64 bits
-        resultados.append(valor_nrc)
-    return resultados
-
-def nrc_tarea():
-    numeroVueltas=random.randint(1, 5)
-    nrc=aleatoria(numeroVueltas)
-    return nrc
+def nrc():
+    return ''.join(str(random.randint(0, 9)) for _ in range(4))
 
 def listar_mis_tareas(request):
     if request.method == 'POST':
@@ -63,10 +54,31 @@ def eliminar_tareas(request):
         return render(request, 'listar_mis_tareas.html')
     elif request.method == 'POST':
         eliminar = request.POST.get('elimina_tarea')
-        tarea = models.crear_tarea.objects.get(nombre=elimina_tarea)
-        tarea.delete()
-        messages.success(request, f'Tarea "{tarea.nombre}" eliminada correctamente.')
-        return redirect('listar_mis_tareas')
+        try:
+            eliminar_numero = int(eliminar)  
+        except ValueError:
+            messages.error(request, 'Por favor, ingresa solo números enteros.')
+            return redirect('/listar_mis_tareas')
+
+        if not existe_ejercicio(eliminar_numero):
+            messages.success(request, f'La tarea "{eliminar_numero}" no existe.')
+            return redirect('/listar_mis_tareas')
+        else:
+            try:
+                tarea = models.crear_tarea.objects.get(id_tarea=eliminar_numero)
+                tarea.delete()
+                messages.success(request, f'Tarea "{tarea.nombre}" eliminada correctamente.')            
+                return redirect('/listar_mis_tareas')
+            except models.crear_tarea.DoesNotExist:
+                messages.error(request, f'La tarea "{eliminar_numero}" no existe.')
+                return redirect('/listar_mis_tareas')
+
+def existe_ejercicio(eliminar):
+    existe=models.crear_tarea.objects.filter(id_tarea=eliminar).exists()
+    if existe:
+        return True
+    else:
+        return False
 
 def respuestas_estudiantes(request):
 
