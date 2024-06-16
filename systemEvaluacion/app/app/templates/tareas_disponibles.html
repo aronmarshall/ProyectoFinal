@@ -1,3 +1,5 @@
+<!-- tareas_disponibles.html -->
+
 {% extends "base.html" %}
 
 {% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
@@ -19,13 +21,22 @@
     </ul>
 
     <div class="row">
-        {% for tarea in tareas %}
+        {% for tarea in tareas_validas %}
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <p class="card-title"><strong>Tarea:</strong><br>{{ tarea.nombre }}</p>
-                        <p class="card-text"><strong>NRC:</strong><br>{{ tarea.id_tarea }}</p>
                         <p class="card-text"><strong>Descripción:</strong><br>{{ tarea.descripcion_general }}</p>
+                        <p class="card-text"><strong>Inicio:</strong><br>{{ tarea.fecha_inicio }}</p>
+                        <p class="card-text"><strong>cierre:</strong><br>{{ tarea.fecha_cierre }}</p>
+
+                        {% if tarea.estado_valido %}
+                            <p class="card-text text-success">Disponible</p>
+                            <a class="card-text" href="/subir"><strong>Subir</strong><br></a>
+                        {% else %}
+                            <p class="card-text text-danger">No disponible</p>
+                            <p class="card-text">No se puede subir</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
