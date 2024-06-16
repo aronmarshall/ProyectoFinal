@@ -33,6 +33,8 @@ class crear_tarea(models.Model):
     id_tarea = models.IntegerField(primary_key=True)
     nombre = models.CharField(max_length=255)
     descripcion_general = models.TextField()
+    fecha_inicio = models.DateField()
+    fecha_cierre = models.DateField()
     entrada_esperada = models.CharField(max_length=255)
     salida_esperada = models.CharField(max_length=255)
     archivo_evaluar = models.FileField(upload_to='documentos/', null=True, default=None)

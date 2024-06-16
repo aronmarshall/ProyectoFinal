@@ -3,7 +3,7 @@
 {% block encabezado %}
     <form method="post" action="/logout">
         {% csrf_token %}
-        <button type="submit">Cerrar Sesión</button>
+        <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
     </form>
 {% endblock %}
 
@@ -22,6 +22,10 @@
         <input type="text" id="nombre_eje" name="nombre_eje" required/><br>
         <label>Descripción:</label><br>
         <input type="text" id="descripcion" name="descripcion" required/><br>
+        <label>Fecha de inicio:</label><br>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" required/><br>
+        <label>Fecha de cierre:</label><br>
+        <input type="date" id="fecha_cierre" name="fecha_cierre" required/><br>
         <label>Entrada esperada:</label><br>
         <input type="text" id="entrada" name="entrada" required/><br>
         <label>Salida esperada:</label><br>

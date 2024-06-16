@@ -1,12 +1,25 @@
 {% extends "base.html" %}
+
 {% block encabezado %}
-<form method="post" action=/logout>
+<form method="post" action="/logout">
     {% csrf_token %}
-    <button type="submit">Cerrar Sesión</button>
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
 </form>
 {% endblock %}
 
-{% block contenido%}<h1>Bienvenido</h1><br> 
-                    <h2>Facultada De Estadística E Informática</h2><br>
-                    
+{% block contenido %}
+    <div style="background-color: #f2f2f2; padding: 20px; border-radius: 5px;">
+        <h1>Facultad de Estadística e Informática</h1><br>
+
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+
+        <div>
+            <a href="/tareas_disponibles" class="btn btn-personalizado btn-crear">Ver tareas disponibles</a>
+            <a href="/#" class="btn btn-personalizado btn-listar">Enproceso</a>
+        </div>
+    </div>
 {% endblock %}

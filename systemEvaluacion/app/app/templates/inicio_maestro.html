@@ -1,21 +1,26 @@
 {% extends "base.html" %}
+
 {% block encabezado %}
-<form method="post" action=/logout>
+<form method="post" action="/logout">
     {% csrf_token %}
-    <button type="submit">Cerrar Sesión</button>
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
 </form>
 {% endblock %}
 
-{% block contenido%}<h1>Actividades de clase</h1><br> 
+{% block contenido %}
+    <div style="background-color: #f2f2f2; padding: 20px; border-radius: 5px;">
+        <h1>Actividades de clase</h1><br>
 
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    <a href="/crear_tarea">Crear tarea</a>
-    <a href="/listar_mis_tareas">Listar mis tareas</a>
-    <a href="/respuestas_estudiantes">Ver respuestas detalladas</a>
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
 
-
+        <div>
+            <a href="/crear_tarea" class="btn btn-personalizado btn-crear">Crear tarea</a>
+            <a href="/listar_mis_tareas" class="btn btn-personalizado btn-listar">Listar mis tareas</a>
+            <a href="/respuestas_estudiantes" class="btn btn-personalizado btn-ver">Ver respuestas detalladas</a>
+        </div>
+    </div>
 {% endblock %}

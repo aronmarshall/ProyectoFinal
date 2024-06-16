@@ -19,6 +19,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 import systemEvaluacion.views as vistas
 import tareasMaestro.views as vistasDos
+import tareasAlumnos.views as vistasTres
 
 urlpatterns = [
     #path('admin/', admin.site.urls),
@@ -37,6 +38,7 @@ urlpatterns = [
     path('respuestas_estudiantes', vistasDos.respuestas_estudiantes),
     path('eliminar_tareas', vistasDos.eliminar_tareas),
     
+    path('tareas_disponibles', vistasTres.listar_tareas_disponibles),
     
 
 ]

@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bd',
     'captcha',
-    'tareasMaestro'
+    'tareasMaestro',
+    'tareasAlumnos',
+
 ]
 
 MIDDLEWARE = [

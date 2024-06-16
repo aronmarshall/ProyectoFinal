@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
+
+{% block encabezado %}
+<form method="post" action="/logout">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido %}
+    <h1>Tareas</h1>
+
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+
+    <div class="row">
+        {% for tarea in tareas %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="card-title"><strong>Tarea:</strong><br>{{ tarea.nombre }}</p>
+                        <p class="card-text"><strong>NRC:</strong><br>{{ tarea.id_tarea }}</p>
+                        <p class="card-text"><strong>Descripción:</strong><br>{{ tarea.descripcion_general }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
