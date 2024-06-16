@@ -1,11 +1,42 @@
 {% extends "base.html" %}
+
 {% block encabezado %}
-<form method="post" action=/logout>
+<form method="post" action="/logout">
     {% csrf_token %}
     <button type="submit">Cerrar Sesión</button>
 </form>
 {% endblock %}
 
-{% block contenido%}<h1>Crea la tarea ...</h1>
-                    
+{% block contenido %}
+    <h1>Listado de mis tareas</h1>
+    <form method="POST" action="/">
+        {% csrf_token %}
+        <input type="text" id="elimina_tarea" name="elimina_tarea" required/><br>
+        <input type="submit" value="Eliminar tarea"/>
+    </form>
+    {% if tareas %}
+        <div class="row">
+            {% for tarea in tareas %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ tarea.nombre }}</h5>
+                            <p class="card-text"><strong>Descripción:</strong><br> {{ tarea.descripcion_general }}</p>
+                            <p class="card-text"><strong>Entrada esperada:</strong><br> {{ tarea.entrada_esperada }}</p>
+                            <p class="card-text"><strong>Salida esperada:</strong><br> {{ tarea.salida_esperada }}</p>
+                            
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay tareas disponibles.</p>
+    {% endif %}
+
+    <ul class="messages">
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
 {% endblock %}

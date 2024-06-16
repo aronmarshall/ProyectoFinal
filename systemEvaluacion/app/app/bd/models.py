@@ -1,6 +1,9 @@
 from django.db import models
 
 # Create your models here.
+from django.db import models
+
+# Create your models here.
 
 class Alumno(models.Model):
     nombre_completo = models.CharField(max_length=35)
@@ -26,10 +29,10 @@ class Intentos(models.Model):
     intentos = models.PositiveIntegerField()
     fecha_ultimo_intento = models.DateTimeField()
 
-#class crear_tarea(models.Model):
-#    nombre = models.CharField(max_length=255)
-#    descripcion_general = models.TextField()
-#    archivo_entrada = models.FileField(upload_to=upload_to)
-#    archivo_salida_esperada = models.FileField(upload_to=upload_to)
-#    archivo_entrada_ejemplo = models.FileField(upload_to=upload_to)
-#    archivo_salida_ejemplo = models.FileField(upload_to=upload_to)
+class crear_tarea(models.Model):
+    id_tarea = models.IntegerField(primary_key=True)
+    nombre = models.CharField(max_length=255)
+    descripcion_general = models.TextField()
+    entrada_esperada = models.CharField(max_length=255)
+    salida_esperada = models.CharField(max_length=255)
+    archivo_evaluar = models.FileField(upload_to='documentos/', null=True, default=None)
