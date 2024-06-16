@@ -172,6 +172,23 @@ def inicio_maestro(request)->HttpResponse:
         return render(request, 'inicio_maestro.html')
 #########################################################Registro
 def registro_de_maestros(request)->HttpResponse:
+    """
+    Maneja el registro de nuevos maestros. La función admite solicitudes GET y POST.
+    
+    - Si la solicitud es GET, devuelve la página de registro de maestros.
+    - Si la solicitud es POST, procesa los datos del formulario para registrar un nuevo maestro.
+
+    Args:
+    - request: HttpRequest object que contiene detalles sobre la solicitud realizada.
+
+    Returns:
+    - HttpResponse: La respuesta HTTP renderizada con la plantilla correspondiente.
+
+    POST Params:
+    - usuario_nuevo: El nombre de usuario del nuevo maestro.
+    - contrasenia: La contraseña ingresada.
+    - contrasenia_confirma: La confirmación de la contraseña ingresada.
+    """
     if request.method == 'GET':
         return render(request, 'registroMaestro.html')
     elif request.method == 'POST':
@@ -195,6 +212,21 @@ def registro_de_maestros(request)->HttpResponse:
                     return render(request, 'registroMaestro.html')
 
 def insertar_maestro(usuario, contrasenia)->bool:
+    """
+    Inserta un nuevo maestro en la base de datos.
+
+    Args:
+        usuario (str): Nombre de usuario del nuevo maestro.
+        contrasenia (str): Contraseña del nuevo maestro.
+
+    Returns:
+        bool: True si se insertó correctamente el maestro, False si ocurrió algún error.
+
+    Lógica:
+        1. Hashea la contraseña utilizando `contrasenia_segura`.
+        2. Crea un nuevo objeto `Usuario` en el modelo con los datos proporcionados.
+        3. Guarda el nuevo objeto en la base de datos.
+    """
     contrasenia=contrasenia
     hasheado=contrasenia_segura(contrasenia)
     nuevo_maestro = models.Usuario(usuario=usuario, contrasenia=hasheado.encode())
