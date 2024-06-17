@@ -135,7 +135,7 @@ def entregar_tarea(request):
         elif request.method == 'POST':
             try:
                 id_entrega = id_num()
-                alumno = "Emilio" #hardcodeado
+                alumno = request.session.get('alumno')
                 tarea = request.session.get('nombre_entrega_tarea')
                 hora_entrega = obtener_hora_actual()
                 puntaje = 6 #hardcodeado
@@ -152,7 +152,7 @@ def entregar_tarea(request):
                 
                 almacenar_tarea.save()
                 
-                messages.info(request, f'Se entrego la tarea.')
+                messages.info(request, f'Entregaste la tarea {alumno}.')
                 return redirect('/inicio')
 
             except Exception as e:

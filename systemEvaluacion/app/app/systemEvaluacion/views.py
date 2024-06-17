@@ -588,6 +588,7 @@ def validar_token_telegram(request)->HttpResponseRedirect:
                             return redirect('/inicio_maestro')
                         else:
                             request.session['maestro'] = False 
+                            request.session['alumno'] = usuario_sesion 
                             return redirect('/inicio')
                     else:
                         messages.error(request, f'El token "{token_ingresado}" no es correcto.')
