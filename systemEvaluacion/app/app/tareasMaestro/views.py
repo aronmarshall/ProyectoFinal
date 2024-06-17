@@ -142,16 +142,16 @@ def existe_ejercicio(eliminar:int)->bool:
     return existe
 
 def respuestas_estudiantes(request)->HttpResponse:
-    """
-    Renderiza la página para mostrar las respuestas de los estudiantes.
-    
-    Args:
-        request: Objeto HttpRequest que contiene metadatos sobre la solicitud.
-        
-    Returns:
-        HttpResponse: Renderiza la página de respuestas de los estudiantes.
-    """
     if not request.session.get('maestro'):
         return redirect('/inicio')  
     else:
-        return render(request, 'listar_mis_tareas.html')
+        if request.method == 'POST':
+            return render(request, 'respuestas_estudiantes.html')
+        elif request.method == 'GET':
+            estudiantes=consultar_puntos_estudiantes()
+            
+            return render(request, 'respuestas_estudiantes.html', {'estudiantes': estudiantes})
+
+def consultar_puntos_estudiantes():
+    consulta_resultados = models.Entrega.objects.all().values('alumno', 'tarea', 'puntaje')
+    return consulta_resultados
