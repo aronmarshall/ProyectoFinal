@@ -46,7 +46,7 @@ def crear_tarea(request)->HttpResponse:
             salida_ejemplo = request.FILES.get('salida_ejemplo')
 
             # Inserta los datos de la nueva tarea en la base de datos
-            insertar_datos = models.crear_tarea(
+            insertar_datos = models.Crear_tarea(
                 id_tarea=id_tarea, 
                 nombre=nombre_eje, 
                 descripcion_general=descripcion, 
@@ -86,7 +86,7 @@ def listar_mis_tareas(request)->HttpResponse:
         if request.method == 'POST':
             return render(request, 'listar_mis_tareas.html')
         elif request.method == 'GET':
-            consultar_mis_tareas = models.crear_tarea.objects.all()  # Obtiene todas las tareas del maestro
+            consultar_mis_tareas = models.Crear_tarea.objects.all()  # Obtiene todas las tareas del maestro
             messages.info(request, f'Se encontraron {consultar_mis_tareas.count()} tareas.')
             return render(request, 'listar_mis_tareas.html', {'tareas': consultar_mis_tareas})
 
@@ -120,11 +120,11 @@ def eliminar_tareas(request)->HttpResponse:
                 return redirect('/listar_mis_tareas')
             else:
                 try:
-                    tarea = models.crear_tarea.objects.get(id_tarea=eliminar_numero)
+                    tarea = models.Crear_tarea.objects.get(id_tarea=eliminar_numero)
                     tarea.delete()  # Elimina la tarea de la base de datos
                     messages.success(request, f'Tarea "{tarea.nombre}" eliminada correctamente.')
                     return redirect('/listar_mis_tareas')
-                except models.crear_tarea.DoesNotExist:
+                except models.Crear_tarea.DoesNotExist:
                     messages.error(request, f'La tarea "{eliminar_numero}" no existe.')
                     return redirect('/listar_mis_tareas')
 
@@ -138,7 +138,7 @@ def existe_ejercicio(eliminar:int)->bool:
     Returns:
         bool: True si la tarea existe, False en caso contrario.
     """
-    existe = models.crear_tarea.objects.filter(id_tarea=eliminar).exists()
+    existe = models.Crear_tarea.objects.filter(id_tarea=eliminar).exists()
     return existe
 
 def respuestas_estudiantes(request)->HttpResponse:

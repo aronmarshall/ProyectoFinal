@@ -29,7 +29,7 @@ class Intentos(models.Model):
     intentos = models.PositiveIntegerField()
     fecha_ultimo_intento = models.DateTimeField()
 
-class crear_tarea(models.Model):
+class Crear_tarea(models.Model):
     id_tarea = models.IntegerField(primary_key=True)
     nombre = models.CharField(max_length=255)
     descripcion_general = models.TextField()
@@ -38,3 +38,11 @@ class crear_tarea(models.Model):
     entrada_esperada = models.CharField(max_length=255)
     salida_esperada = models.CharField(max_length=255)
     archivo_evaluar = models.FileField(upload_to='documentos/', null=True, default=None)
+
+class Entrega(models.Model):
+    id_entrega =  models.IntegerField(primary_key=True)
+    alumno = models.CharField(max_length=255)
+    tarea = models.CharField(max_length=255)
+    hora_entrega = models.DateTimeField()
+    puntaje = models.FloatField()
+    codigo_entrega = models.FileField(upload_to='entregas/', null=True)

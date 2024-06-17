@@ -2,7 +2,8 @@ from pyexpat.errors import messages
 from django.contrib import messages  
 from django.http import HttpResponse, HttpResponseRedirect  
 from django.shortcuts import render, redirect  
-from datetime import datetime, timezone, date  
+from datetime import datetime, date  
+from django.utils import timezone
 
 
 from bd import models  
@@ -19,6 +20,7 @@ import threading
 import secrets
 import string
 import random
+
 
 #######################################################################
 def listar_tareas_disponibles(request)->HttpResponse:
@@ -79,7 +81,7 @@ def obtener_tareas_con_estado(hoy:date)->list:
     tareas_validas = validar_tareas_por_fecha(hoy)  
     tareas_con_estado = []  # Inicializa una lista vacía para contener las tareas con su estado
 
-    for tarea in models.crear_tarea.objects.all():  
+    for tarea in models.Crear_tarea.objects.all():  
         tarea.estado_valido = fecha_valida(tarea.fecha_inicio)  
         tareas_con_estado.append(tarea)  # Añade la tarea con su estado a la lista
     return tareas_con_estado  # Devuelve la lista de tareas con su estado
@@ -94,7 +96,7 @@ def validar_tareas_por_fecha(hoy:date)->str:
     Returns:
         QuerySet: Conjunto de consultas de tareas que son válidas en función de la fecha actual.
     """
-    return models.crear_tarea.objects.filter(fecha_inicio__lte=hoy, fecha_cierre__gte=hoy)  # Filtra las tareas que son válidas en función de sus fechas de inicio y cierre
+    return models.Crear_tarea.objects.filter(fecha_inicio__lte=hoy, fecha_cierre__gte=hoy)  # Filtra las tareas que son válidas en función de sus fechas de inicio y cierre
 ########################################################################
 def subir_tarea(request):
     if request.session.get('maestro'):  
@@ -105,16 +107,15 @@ def subir_tarea(request):
         elif request.method == 'POST':  
             nombre_tarea = request.POST.get('nombre_tarea')
             detalles_tarea = consultar_detalles_tarea(nombre_tarea)
-    
-            if detalles_tarea:
-                messages.info(request, f'{detalles_tarea}')
-            else:
-                messages.error(request, f'La tarea "{nombre_tarea}" no existe o no se encontraron detalles.')
+
+            #Obtenemos data en session
+            request.session['nombre_entrega_tarea'] = nombre_tarea 
+
             return render(request, 'subir_tareas.html', {'detalles_tarea': detalles_tarea})
 
-def consultar_detalles_tarea(nombre_tarea):
+def consultar_detalles_tarea(nombre_tarea): 
     try:
-        tarea = models.crear_tarea.objects.get(nombre=nombre_tarea)
+        tarea = models.Crear_tarea.objects.get(nombre=nombre_tarea)
         detalles_tarea = {
             'nombre': tarea.nombre,
             'descripcion': tarea.descripcion_general,
@@ -122,5 +123,50 @@ def consultar_detalles_tarea(nombre_tarea):
             'fecha_cierre': tarea.fecha_cierre,
         }
         return detalles_tarea
-    except models.crear_tarea.DoesNotExist:
+    except models.Crear_tarea.DoesNotExist:
         return None
+
+def entregar_tarea(request):
+    if request.session.get('maestro'):  
+        return redirect('/inicio_maestro')  
+    else:
+        if request.method == 'GET':  
+               return render(request, 'inicio.html')      
+        elif request.method == 'POST':
+            try:
+                id_entrega = id_num()
+                alumno = "Emilio" #hardcodeado
+                tarea = request.session.get('nombre_entrega_tarea')
+                hora_entrega = obtener_hora_actual()
+                puntaje = 6 #hardcodeado
+                entrega_tarea = request.FILES.get('archivo_tarea')
+
+                almacenar_tarea = models.Entrega(
+                    id_entrega=id_entrega, 
+                    alumno=alumno, 
+                    tarea=tarea,
+                    hora_entrega=hora_entrega, 
+                    puntaje=puntaje, 
+                    codigo_entrega=entrega_tarea
+                    )
+                
+                almacenar_tarea.save()
+                
+                messages.info(request, f'Se entrego la tarea.')
+                return redirect('/inicio')
+
+            except Exception as e:
+                messages.error(request, f'Error al entregar la tarea: {str(e)}')
+                return redirect('/inicio')
+
+def id_num()->int:
+    """
+    Genera un número de referencia de 4 dígitos.
+    
+    Returns:
+        int: Número de referencia de 4 dígitos.
+    """
+    return ''.join(str(random.randint(0, 9)) for _ in range(4))
+
+def obtener_hora_actual():
+    return timezone.now()

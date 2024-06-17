@@ -40,6 +40,7 @@ urlpatterns = [
     
     path('tareas_disponibles', vistasTres.listar_tareas_disponibles),
     path('subir_tarea', vistasTres.subir_tarea),
+    path('entregar_tarea', vistasTres.entregar_tarea),
 
 
 ]
