@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
+
+{% block encabezado %}
+<form method="post" action="/logout">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title">Entregar tarea</h1>
+                        {% if detalles_tarea %}
+                            <p><strong>Detalles de la tarea:</strong></p>
+                            <ul>
+                                <li><strong>Nombre:</strong><br>{{ detalles_tarea.nombre }}</li>
+                                <li><strong>Descripción:</strong><br> {{ detalles_tarea.descripcion }}</li>
+                                <li><strong>Fecha de inicio:</strong><br> {{ detalles_tarea.fecha_inicio }}</li>
+                                <li><strong>Fecha de cierre:</strong><br> {{ detalles_tarea.fecha_cierre }}</li>
+                            </ul>
+                        {% else %}
+                            <p>No se encontraron detalles para la tarea "{{ nombre_tarea }}".</p>
+                        {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -20,8 +20,8 @@ import secrets
 import string
 import random
 
-
-def listar_tareas_disponibles(request):
+#######################################################################
+def listar_tareas_disponibles(request)->HttpResponse:
     """
     Lista las tareas disponibles en función de la sesión del usuario y el método de solicitud.
     
@@ -35,16 +35,16 @@ def listar_tareas_disponibles(request):
         return redirect('/inicio_maestro')  
     else:
         if request.method == 'GET':  
+            
             hoy = fecha_actual()  
             tareas_validas = obtener_tareas_con_estado(hoy)  
-            
+
             messages.info(request, f'Fecha: {hoy}')  # Añade un mensaje flash con la fecha actual
             return render(request, 'tareas_disponibles.html', {'tareas_validas': tareas_validas})  # Renderiza la plantilla de tareas con las tareas válidas
         elif request.method == 'POST':  
             return render(request, 'tareas_disponibles.html')  
 
-
-def fecha_valida(fecha_inicio):
+def fecha_valida(fecha_inicio:date)->bool:
     """
     Verifica si la fecha de inicio dada es válida (hoy o posterior).
     
@@ -57,7 +57,6 @@ def fecha_valida(fecha_inicio):
     hoy = date.today()  
     return fecha_inicio >= hoy and fecha_inicio <= hoy  # Verifica si la fecha de inicio es hoy o posterior
 
-
 def fecha_actual() -> date:
     """
     Obtiene la fecha actual.
@@ -67,8 +66,7 @@ def fecha_actual() -> date:
     """
     return date.today()  
 
-
-def obtener_tareas_con_estado(hoy: date):
+def obtener_tareas_con_estado(hoy:date)->list:
     """
     Obtiene las tareas con su estado en función de la fecha actual.
     
@@ -86,8 +84,7 @@ def obtener_tareas_con_estado(hoy: date):
         tareas_con_estado.append(tarea)  # Añade la tarea con su estado a la lista
     return tareas_con_estado  # Devuelve la lista de tareas con su estado
 
-
-def validar_tareas_por_fecha(hoy: date):
+def validar_tareas_por_fecha(hoy:date)->str:
     """
     Valida las tareas en función de sus fechas de inicio y cierre.
     
@@ -98,3 +95,32 @@ def validar_tareas_por_fecha(hoy: date):
         QuerySet: Conjunto de consultas de tareas que son válidas en función de la fecha actual.
     """
     return models.crear_tarea.objects.filter(fecha_inicio__lte=hoy, fecha_cierre__gte=hoy)  # Filtra las tareas que son válidas en función de sus fechas de inicio y cierre
+########################################################################
+def subir_tarea(request):
+    if request.session.get('maestro'):  
+        return redirect('/inicio_maestro')  
+    else:
+        if request.method == 'GET':  
+            return render(request, 'subir_tareas.html')      
+        elif request.method == 'POST':  
+            nombre_tarea = request.POST.get('nombre_tarea')
+            detalles_tarea = consultar_detalles_tarea(nombre_tarea)
+    
+            if detalles_tarea:
+                messages.info(request, f'{detalles_tarea}')
+            else:
+                messages.error(request, f'La tarea "{nombre_tarea}" no existe o no se encontraron detalles.')
+            return render(request, 'subir_tareas.html', {'detalles_tarea': detalles_tarea})
+
+def consultar_detalles_tarea(nombre_tarea):
+    try:
+        tarea = models.crear_tarea.objects.get(nombre=nombre_tarea)
+        detalles_tarea = {
+            'nombre': tarea.nombre,
+            'descripcion': tarea.descripcion_general,
+            'fecha_inicio': tarea.fecha_inicio,
+            'fecha_cierre': tarea.fecha_cierre,
+        }
+        return detalles_tarea
+    except models.crear_tarea.DoesNotExist:
+        return None

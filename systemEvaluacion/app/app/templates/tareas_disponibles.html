@@ -1,5 +1,3 @@
-<!-- tareas_disponibles.html -->
-
 {% extends "base.html" %}
 
 {% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
@@ -12,7 +10,29 @@
 {% endblock %}
 
 {% block contenido %}
-    <h1>Tareas</h1>
+    <style>
+        /* Estilos para el formulario */
+        .card-body form {
+            text-align: center; /* Centrar el contenido del formulario */
+            max-width: 300px; /* Ancho máximo del formulario */
+            margin: 0 auto; /* Centrar horizontalmente */
+            padding: 10px; /* Espaciado interno */
+            border: 1px solid #ccc; /* Borde del formulario */
+            background-color: #f9f9f9; /* Color de fondo */
+        }
+        .card-body input[type="text"] {
+            width: 100%; /* Ancho completo del campo de texto */
+            border: none; /* Eliminar el borde del campo de texto */
+            background-color: transparent; /* Fondo transparente */
+            text-align: center; /* Centrar el texto dentro del campo de texto */
+            font-size: inherit; /* Tamaño de fuente igual al del padre */
+            font-weight: inherit; /* Peso de la fuente igual al del padre */
+            color: inherit; /* Color de texto igual al del padre */
+            padding: 0; /* Eliminar el relleno */
+        }
+    </style>
+
+    <h1 style="text-align: center;">Entregar tarea</h1>
 
     <ul class="messages">
         {% for message in messages %}
@@ -25,18 +45,23 @@
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body">
-                        <p class="card-title"><strong>Tarea:</strong><br>{{ tarea.nombre }}</p>
-                        <p class="card-text"><strong>Descripción:</strong><br>{{ tarea.descripcion_general }}</p>
-                        <p class="card-text"><strong>Inicio:</strong><br>{{ tarea.fecha_inicio }}</p>
-                        <p class="card-text"><strong>cierre:</strong><br>{{ tarea.fecha_cierre }}</p>
+                        <form method="POST" action="/subir_tarea">
+                            {% csrf_token %}
+                            <label for="nombre_tarea">Tarea:</label><br>
+                            <input type="text" id="nombre_tarea" name="nombre_tarea" readonly value="{{ tarea.nombre }}"><br>
+                        
+                            <p class="card-text"><strong>Puntos:</strong><br>#</p>
+                            <p class="card-text"><strong>Inicio:</strong><br>{{ tarea.fecha_inicio }}</p>
+                            <p class="card-text"><strong>Cierre:</strong><br>{{ tarea.fecha_cierre }}</p>
 
-                        {% if tarea.estado_valido %}
-                            <p class="card-text text-success">Disponible</p>
-                            <a class="card-text" href="/subir"><strong>Subir</strong><br></a>
-                        {% else %}
-                            <p class="card-text text-danger">No disponible</p>
-                            <p class="card-text">No se puede subir</p>
-                        {% endif %}
+                            {% if tarea.estado_valido %}
+                                <p class="card-text text-success">Disponible</p>
+                                <button type="submit" class="btn btn-primary">Ver detalles</button> 
+                            {% else %}
+                                <p class="card-text text-danger">No disponible</p>
+                                <p class="card-text">No puedes subir</p>
+                            {% endif %}
+                        </form>
                     </div>
                 </div>
             </div>

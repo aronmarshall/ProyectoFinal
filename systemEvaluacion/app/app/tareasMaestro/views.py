@@ -18,7 +18,7 @@ import secrets
 import string
 import random
 
-def crear_tarea(request):
+def crear_tarea(request)->HttpResponse:
     """
     Crea una nueva tarea basada en los datos proporcionados por el formulario POST.
     
@@ -61,16 +61,16 @@ def crear_tarea(request):
             messages.info(request, f'Se insertó la actividad {nombre_eje}')
             return render(request, 'inicio_maestro.html')
 
-def nrc():
+def nrc()->int:
     """
     Genera un número de referencia de 4 dígitos.
     
     Returns:
-        str: Número de referencia de 4 dígitos.
+        int: Número de referencia de 4 dígitos.
     """
     return ''.join(str(random.randint(0, 9)) for _ in range(4))
 
-def listar_mis_tareas(request):
+def listar_mis_tareas(request)->HttpResponse:
     """
     Lista todas las tareas creadas por el maestro.
     
@@ -90,7 +90,7 @@ def listar_mis_tareas(request):
             messages.info(request, f'Se encontraron {consultar_mis_tareas.count()} tareas.')
             return render(request, 'listar_mis_tareas.html', {'tareas': consultar_mis_tareas})
 
-def eliminar_tareas(request):
+def eliminar_tareas(request)->HttpResponse:
     """
     Elimina una tarea específica basada en el ID proporcionado por el formulario POST.
     
@@ -109,7 +109,9 @@ def eliminar_tareas(request):
             eliminar = request.POST.get('elimina_tarea')
             try:
                 eliminar_numero = int(eliminar)  # Convierte el ID a un número entero
+            
             except ValueError:
+            
                 messages.error(request, 'Por favor, ingresa solo números enteros.')
                 return redirect('/listar_mis_tareas')
 
@@ -126,7 +128,7 @@ def eliminar_tareas(request):
                     messages.error(request, f'La tarea "{eliminar_numero}" no existe.')
                     return redirect('/listar_mis_tareas')
 
-def existe_ejercicio(eliminar):
+def existe_ejercicio(eliminar:int)->bool:
     """
     Verifica si una tarea con el ID especificado existe.
     
@@ -139,7 +141,7 @@ def existe_ejercicio(eliminar):
     existe = models.crear_tarea.objects.filter(id_tarea=eliminar).exists()
     return existe
 
-def respuestas_estudiantes(request):
+def respuestas_estudiantes(request)->HttpResponse:
     """
     Renderiza la página para mostrar las respuestas de los estudiantes.
     

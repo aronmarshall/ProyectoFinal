@@ -1,33 +1,43 @@
-{% extends "baseLogReg.html" %}
-    <head>
-        {% block titulo %}Registro de usuario{% endblock %}
-    </head>
-    <body>
-        {% block encabezado %}
-        <h1>Regístrate</h1>
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        {% endblock %}
-        {% block formulario %}
-            <form method="POST">
-                {% csrf_token %}
-                <label>Nombre:</label><br>
-                <input type="text" id="nombre_completo" name="nombre_completo" required/><br>
-                <label>Matricula:</label><br>
-                <input type="text" id="matricula" name="matricula" required/><br>
-                <label>Usuario:</label><br>
-                <input type="text" id="usuario_nuevo" name="usuario_nuevo" required/><br>
-                <label>Contraseña</label><br>
-                <input type="password" id="contasenia" name="contrasenia" required/><br>
-                <label>Confirma contraseña</label><br>
-                <input type="password" id="contasenia_confirma" name="contrasenia_confirma" required/><br>
-                <input type="submit" value="Registrar"/>
-            </form>
-            <a class="navbar-brand" href="login">Iniciar sesión</a>
-        {% endblock %}
-    </body>
+{% extends "base.html" %}
+
+{% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
+
+{% block encabezado %}
+<form method="post" action="/logout">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido %}
+    <h1>Tareas</h1>
+
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+
+    <div class="row">
+        {% for tarea in tareas_validas %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="card-title"><strong>Tarea:</strong><br>{{ tarea.nombre }}</p>
+                        <p class="card-text"><strong>Puntos:</strong><br>#</p>
+                        <p class="card-text"><strong>Inicio:</strong><br>{{ tarea.fecha_inicio }}</p>
+                        <p class="card-text"><strong>cierre:</strong><br>{{ tarea.fecha_cierre }}</p>
+
+                        {% if tarea.estado_valido %}
+                            <p class="card-text text-success">Disponible</p>
+                            <a class="card-text" href="/subir_tarea"><strong>Ver detalles</strong><br></a>
+                        {% else %}
+                            <p class="card-text text-danger">No disponible</p>
+                            <p class="card-text">No se puede subir</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

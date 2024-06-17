@@ -700,7 +700,16 @@ def consultar_tiempo_almacenado(token:str)->datetime:
     """
     consulta_tiempo = models.TelegramData.objects.filter(tokens=token).values_list('tiempo', flat=True).first()
     return consulta_tiempo
+
 def consultar_maestro_usuario(usuario_sesion:str)->bool:
+    """
+        Funcion que consulta si el usuario de la sesión existe.
+    Args:
+        usuario_sesion (str): Se le pasa el usuario de la sesión.
+
+    Returns:
+        bool: Devuelve True si existe False en caso contrario.
+    """
     consultar_maestro = models.Usuario.objects.filter(usuario=usuario_sesion, alumno_id__isnull=True).exists()
     if consultar_maestro:
         return True
