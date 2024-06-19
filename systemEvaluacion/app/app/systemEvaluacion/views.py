@@ -585,6 +585,7 @@ def validar_token_telegram(request)->HttpResponseRedirect:
                         request.session['logueado'] = True
                         if consultar_maestro_usuario(usuario_sesion):
                             request.session['maestro'] = True 
+                            request.session['profesor'] = usuario_sesion  
                             return redirect('/inicio_maestro')
                         else:
                             request.session['maestro'] = False 

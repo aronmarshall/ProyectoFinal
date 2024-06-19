@@ -31,6 +31,7 @@ class Intentos(models.Model):
 
 class Crear_tarea(models.Model):
     id_tarea = models.IntegerField(primary_key=True)
+    profesor = models.CharField(max_length=255)
     nombre = models.CharField(max_length=255)
     descripcion_general = models.TextField()
     fecha_inicio = models.DateField()

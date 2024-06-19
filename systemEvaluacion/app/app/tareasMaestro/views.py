@@ -37,6 +37,7 @@ def crear_tarea(request)->HttpResponse:
             cadena_numeros = nrc()
             id_tarea = cadena_numeros
             nombre_eje = request.POST.get('nombre_eje')
+            profesor = request.session.get('profesor')
             descripcion = request.POST.get('descripcion')
             fecha_inicio = request.POST.get('fecha_inicio')
             fecha_cierre = request.POST.get('fecha_cierre')
@@ -50,7 +51,8 @@ def crear_tarea(request)->HttpResponse:
             else:
                 insertar_datos = models.Crear_tarea(
                     id_tarea=id_tarea, 
-                    nombre=nombre_eje, 
+                    nombre=nombre_eje,
+                    profesor=profesor, 
                     descripcion_general=descripcion, 
                     fecha_inicio=fecha_inicio, 
                     fecha_cierre=fecha_cierre, 
@@ -95,7 +97,8 @@ def listar_mis_tareas(request)->HttpResponse:
         if request.method == 'POST':
             return render(request, 'listar_mis_tareas.html')
         elif request.method == 'GET':
-            consultar_mis_tareas = models.Crear_tarea.objects.all() 
+            profesor = request.session.get('profesor')
+            consultar_mis_tareas = models.Crear_tarea.objects.filter(profesor=profesor) 
             messages.info(request, f'Se encontraron {consultar_mis_tareas.count()} tareas.')
             return render(request, 'listar_mis_tareas.html', {'tareas': consultar_mis_tareas})
 

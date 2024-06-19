@@ -47,7 +47,7 @@
                     <div class="card-body">
                         <form method="POST" action="/subir_tarea">
                             {% csrf_token %}
-                            <label for="nombre_tarea">Tarea:</label><br>
+                            <label for="nombre_tarea"><strong>Tarea:</strong></label><br>
                             <input type="text" id="nombre_tarea" name="nombre_tarea" readonly value="{{ tarea.nombre }}"><br>
                         
                             <p class="card-text"><strong>Puntos:</strong><br>#</p>
