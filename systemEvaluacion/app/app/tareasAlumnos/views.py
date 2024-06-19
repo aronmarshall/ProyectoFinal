@@ -33,7 +33,7 @@ def listar_tareas_disponibles(request)->HttpResponse:
     Returns:
         Objeto HttpResponse con la plantilla de tareas renderizada o una respuesta de redirección.
     """
-    if request.session.get('maestro'):  # Verifica si el usuario es un maestro
+    if request.session.get('maestro'):
         return redirect('/inicio_maestro')  
     else:
         if request.method == 'GET':  
@@ -41,23 +41,23 @@ def listar_tareas_disponibles(request)->HttpResponse:
             hoy = fecha_actual()  
             tareas_validas = obtener_tareas_con_estado(hoy)  
 
-            messages.info(request, f'Fecha: {hoy}')  # Añade un mensaje flash con la fecha actual
+            messages.info(request, f'Fecha: {hoy}')  
             return render(request, 'tareas_disponibles.html', {'tareas_validas': tareas_validas})  # Renderiza la plantilla de tareas con las tareas válidas
         elif request.method == 'POST':  
             return render(request, 'tareas_disponibles.html')  
 
-def fecha_valida(fecha_inicio:date)->bool:
+def fecha_valida(fecha_inicio:date, fecha_cierre:date)->bool:
     """
     Verifica si la fecha de inicio dada es válida (hoy o posterior).
     
     Args:
         fecha_inicio: Objeto date que representa la fecha de inicio.
-        
+        fecha_cierre: Objeto date que representa la fecha de cierre.
     Returns:
         bool: True si la fecha de inicio es válida, False en caso contrario.
     """
     hoy = date.today()  
-    return fecha_inicio >= hoy and fecha_inicio <= hoy  # Verifica si la fecha de inicio es hoy o posterior
+    return fecha_inicio <= hoy <= fecha_cierre   
 
 def fecha_actual() -> date:
     """
@@ -82,7 +82,7 @@ def obtener_tareas_con_estado(hoy:date)->list:
     tareas_con_estado = []  # Inicializa una lista vacía para contener las tareas con su estado
 
     for tarea in models.Crear_tarea.objects.all():  
-        tarea.estado_valido = fecha_valida(tarea.fecha_inicio)  
+        tarea.estado_valido = fecha_valida(tarea.fecha_inicio, tarea.fecha_cierre)  
         tareas_con_estado.append(tarea)  # Añade la tarea con su estado a la lista
     return tareas_con_estado  # Devuelve la lista de tareas con su estado
 
@@ -108,9 +108,8 @@ def subir_tarea(request):
             nombre_tarea = request.POST.get('nombre_tarea')
             detalles_tarea = consultar_detalles_tarea(nombre_tarea)
 
-            #Obtenemos data en session
             request.session['nombre_entrega_tarea'] = nombre_tarea 
-
+            
             return render(request, 'subir_tareas.html', {'detalles_tarea': detalles_tarea})
 
 def consultar_detalles_tarea(nombre_tarea): 
@@ -138,12 +137,14 @@ def entregar_tarea(request):
                 alumno = request.session.get('alumno')
                 tarea = request.session.get('nombre_entrega_tarea')
                 hora_entrega = obtener_hora_actual()
-                puntaje = 6 #hardcodeado
+                puntaje = 7 #hardcodeado
                 entrega_tarea = request.FILES.get('archivo_tarea')
+
+                nombre_alumno=consultar_nombre_formal(alumno)
 
                 almacenar_tarea = models.Entrega(
                     id_entrega=id_entrega, 
-                    alumno=alumno, 
+                    alumno=nombre_alumno, 
                     tarea=tarea,
                     hora_entrega=hora_entrega, 
                     puntaje=puntaje, 
@@ -152,7 +153,7 @@ def entregar_tarea(request):
                 
                 almacenar_tarea.save()
                 
-                messages.info(request, f'Entregaste la tarea {alumno}.')
+                messages.info(request, f'Entregaste la tarea {tarea}|{nombre_alumno}.')
                 return redirect('/inicio')
 
             except Exception as e:
@@ -168,5 +169,9 @@ def id_num()->int:
     """
     return ''.join(str(random.randint(0, 9)) for _ in range(4))
 
-def obtener_hora_actual():
+def consultar_nombre_formal(alumno)->str:
+    usuario = models.Usuario.objects.get(usuario=alumno)
+    return usuario.alumno.nombre_completo
+
+def obtener_hora_actual()->datetime:
     return timezone.now()

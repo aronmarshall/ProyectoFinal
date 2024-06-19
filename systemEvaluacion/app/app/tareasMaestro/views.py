@@ -34,7 +34,6 @@ def crear_tarea(request)->HttpResponse:
         if request.method == 'GET':
             return render(request, 'crear_tarea.html')  
         elif request.method == 'POST':
-            # Obtiene datos del formulario y genera un id de tarea
             cadena_numeros = nrc()
             id_tarea = cadena_numeros
             nombre_eje = request.POST.get('nombre_eje')
@@ -45,21 +44,31 @@ def crear_tarea(request)->HttpResponse:
             salida = request.POST.get('salida')
             salida_ejemplo = request.FILES.get('salida_ejemplo')
 
-            # Inserta los datos de la nueva tarea en la base de datos
-            insertar_datos = models.Crear_tarea(
-                id_tarea=id_tarea, 
-                nombre=nombre_eje, 
-                descripcion_general=descripcion, 
-                fecha_inicio=fecha_inicio, 
-                fecha_cierre=fecha_cierre, 
-                entrada_esperada=entrada, 
-                salida_esperada=salida, 
-                archivo_evaluar=salida_ejemplo
-            )
-            insertar_datos.save()
+            if titulo_tarea_igual(nombre_eje):
+                messages.info(request, f'Lo siento, la tarea {nombre_eje} tiene nombre duplicado.')
+                return render(request, 'inicio_maestro.html')
+            else:
+                insertar_datos = models.Crear_tarea(
+                    id_tarea=id_tarea, 
+                    nombre=nombre_eje, 
+                    descripcion_general=descripcion, 
+                    fecha_inicio=fecha_inicio, 
+                    fecha_cierre=fecha_cierre, 
+                    entrada_esperada=entrada, 
+                    salida_esperada=salida, 
+                    archivo_evaluar=salida_ejemplo
+                )
+                insertar_datos.save()
 
-            messages.info(request, f'Se insertó la actividad {nombre_eje}')
-            return render(request, 'inicio_maestro.html')
+                messages.info(request, f'Se insertó la actividad {nombre_eje}')
+                return render(request, 'inicio_maestro.html')
+
+def titulo_tarea_igual(nombre_eje:str)->bool:
+    existe_nombre_tarea = models.Crear_tarea.objects.filter(nombre=nombre_eje).exists()
+    if existe_nombre_tarea:
+        return True
+    else:
+        return False
 
 def nrc()->int:
     """
@@ -86,7 +95,7 @@ def listar_mis_tareas(request)->HttpResponse:
         if request.method == 'POST':
             return render(request, 'listar_mis_tareas.html')
         elif request.method == 'GET':
-            consultar_mis_tareas = models.Crear_tarea.objects.all()  # Obtiene todas las tareas del maestro
+            consultar_mis_tareas = models.Crear_tarea.objects.all() 
             messages.info(request, f'Se encontraron {consultar_mis_tareas.count()} tareas.')
             return render(request, 'listar_mis_tareas.html', {'tareas': consultar_mis_tareas})
 
@@ -108,7 +117,7 @@ def eliminar_tareas(request)->HttpResponse:
         elif request.method == 'POST':
             eliminar = request.POST.get('elimina_tarea')
             try:
-                eliminar_numero = int(eliminar)  # Convierte el ID a un número entero
+                eliminar_numero = int(eliminar)  
             
             except ValueError:
             
@@ -121,7 +130,7 @@ def eliminar_tareas(request)->HttpResponse:
             else:
                 try:
                     tarea = models.Crear_tarea.objects.get(id_tarea=eliminar_numero)
-                    tarea.delete()  # Elimina la tarea de la base de datos
+                    tarea.delete()  
                     messages.success(request, f'Tarea "{tarea.nombre}" eliminada correctamente.')
                     return redirect('/listar_mis_tareas')
                 except models.Crear_tarea.DoesNotExist:
@@ -152,6 +161,6 @@ def respuestas_estudiantes(request)->HttpResponse:
             
             return render(request, 'respuestas_estudiantes.html', {'estudiantes': estudiantes})
 
-def consultar_puntos_estudiantes():
+def consultar_puntos_estudiantes()->str:
     consulta_resultados = models.Entrega.objects.all().values('alumno', 'tarea', 'puntaje')
     return consulta_resultados
