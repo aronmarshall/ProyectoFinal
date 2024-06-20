@@ -26,8 +26,9 @@
                         </ul>
                         <form method="POST" action="/entregar_tarea">
                             {% csrf_token %}
-                            <label for="archivo_tarea">Subir archivo:</label><br>
-                            <input type="file" id="archivo_tarea" name="archivo_tarea" required/><br>
+                            <label for="tarea">Pega tu tarea:</label><br>
+                            <input type="text" id="tarea" name="tarea" required/><br>
+
                             <button type="submit" class="btn btn-success">Entregar Tarea</button>
                         </form>
                     {% else %}

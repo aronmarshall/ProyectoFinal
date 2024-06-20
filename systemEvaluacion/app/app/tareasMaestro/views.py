@@ -43,7 +43,6 @@ def crear_tarea(request)->HttpResponse:
             fecha_cierre = request.POST.get('fecha_cierre')
             entrada = request.POST.get('entrada')
             salida = request.POST.get('salida')
-            salida_ejemplo = request.FILES.get('salida_ejemplo')
 
             if titulo_tarea_igual(nombre_eje):
                 messages.info(request, f'Lo siento, la tarea {nombre_eje} tiene nombre duplicado.')
@@ -57,8 +56,7 @@ def crear_tarea(request)->HttpResponse:
                     fecha_inicio=fecha_inicio, 
                     fecha_cierre=fecha_cierre, 
                     entrada_esperada=entrada, 
-                    salida_esperada=salida, 
-                    archivo_evaluar=salida_ejemplo
+                    salida_esperada=salida
                 )
                 insertar_datos.save()
 

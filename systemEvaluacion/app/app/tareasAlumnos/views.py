@@ -20,6 +20,8 @@ import threading
 import secrets
 import string
 import random
+import shutil
+import subprocess
 
 
 #######################################################################
@@ -79,12 +81,12 @@ def obtener_tareas_con_estado(hoy:date)->list:
         list: Lista de tareas con su estado.
     """
     tareas_validas = validar_tareas_por_fecha(hoy)  
-    tareas_con_estado = []  # Inicializa una lista vacía para contener las tareas con su estado
+    tareas_con_estado = []  
 
     for tarea in models.Crear_tarea.objects.all():  
         tarea.estado_valido = fecha_valida(tarea.fecha_inicio, tarea.fecha_cierre)  
-        tareas_con_estado.append(tarea)  # Añade la tarea con su estado a la lista
-    return tareas_con_estado  # Devuelve la lista de tareas con su estado
+        tareas_con_estado.append(tarea)  
+    return tareas_con_estado  
 
 def validar_tareas_por_fecha(hoy:date)->str:
     """
@@ -138,9 +140,10 @@ def entregar_tarea(request):
                 tarea = request.session.get('nombre_entrega_tarea')
                 hora_entrega = obtener_hora_actual()
                 puntaje = 7 #hardcodeado
-                entrega_tarea = request.FILES.get('archivo_tarea')
+                entrega_tarea = request.POST.get('tarea')
 
                 nombre_alumno=consultar_nombre_formal(alumno)
+                crear_contenedor(id_entrega)
 
                 almacenar_tarea = models.Entrega(
                     id_entrega=id_entrega, 
@@ -153,7 +156,7 @@ def entregar_tarea(request):
                 
                 almacenar_tarea.save()
                 
-                messages.info(request, f'Entregaste la tarea {tarea}|{nombre_alumno}.')
+                messages.info(request, f'Entregaste la tarea "{tarea}".')
                 return redirect('/inicio')
 
             except Exception as e:
@@ -174,4 +177,24 @@ def consultar_nombre_formal(alumno)->str:
     return usuario.alumno.nombre_completo
 
 def obtener_hora_actual()->datetime:
+
     return timezone.now()
+
+##########################################################################
+
+def crear_contenedor(id_entrega):
+    ruta_inicial = os.getcwd()
+    nombre_carpeta = 'contenedor_de_puntos'
+    ruta_contenedor = os.path.join(ruta_inicial, nombre_carpeta)    
+
+    if not os.path.exists(ruta_contenedor):
+        os.mkdir(ruta_contenedor)
+
+    os.chdir(ruta_contenedor)
+    os.mkdir(id_entrega)
+
+    ##aqui
+
+
+    ####regresa     
+    os.chdir(ruta_inicial)
