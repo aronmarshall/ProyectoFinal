@@ -143,7 +143,8 @@ def entregar_tarea(request):
                 entrega_tarea = request.POST.get('tarea')
 
                 nombre_alumno=consultar_nombre_formal(alumno)
-                crear_contenedor(id_entrega)
+                crear_contenedor(id_entrega, entrega_tarea, tarea)
+                obtener_parametros(tarea)
 
                 almacenar_tarea = models.Entrega(
                     id_entrega=id_entrega, 
@@ -156,7 +157,7 @@ def entregar_tarea(request):
                 
                 almacenar_tarea.save()
                 
-                messages.info(request, f'Entregaste la tarea "{tarea}".')
+                messages.info(request, f'Entregaste la tarea "{tarea}{obtener_parametros(tarea)}".')
                 return redirect('/inicio')
 
             except Exception as e:
@@ -182,19 +183,76 @@ def obtener_hora_actual()->datetime:
 
 ##########################################################################
 
-def crear_contenedor(id_entrega):
+def crear_contenedor(id_entrega, entrega_tarea, tarea):
     ruta_inicial = os.getcwd()
     nombre_carpeta = 'contenedor_de_puntos'
-    ruta_contenedor = os.path.join(ruta_inicial, nombre_carpeta)    
+    ruta_contenedor = os.path.join(ruta_inicial, nombre_carpeta)  
+
+    directorio_origen='/app/evaluadorBase'  
+
+    archivos = os.listdir(directorio_origen)
+
+    
 
     if not os.path.exists(ruta_contenedor):
         os.mkdir(ruta_contenedor)
-
     os.chdir(ruta_contenedor)
     os.mkdir(id_entrega)
+    os.chdir(id_entrega)
+    directorio_destino=os.getcwd()
 
-    ##aqui
+    for archivo in archivos:
+        ruta_origen = os.path.join(directorio_origen, archivo)
+        ruta_destino = os.path.join(directorio_destino, archivo)
+        shutil.copy(ruta_origen, ruta_destino)
+    
 
+    #parametros="1111"
 
+    with open('Tarea.py', 'w') as f:
+        for linea in entrega_tarea.strip().splitlines():
+            f.write(linea + '\n')
+
+    parametros = obtener_parametros(tarea)
+    salida = salidas(tarea)
+
+    elementos_sepearados = parametros.split()
+    elementos_sepearados2 = salida.split()
+
+    tamanio = len(elementos_sepearados)
+    i = 0
+    with open('Prueba.txt', 'w') as f:
+        while i < tamanio:
+
+            f.write(f'{elementos_sepearados[i]}\n\n')
+            f.write('!!!!!!\n\n')
+            f.write(f'{elementos_sepearados2[i]}\n\n')
+            f.write('$$$$$$\n\n')
+            i+=1
+    crear_docker(directorio_destino, id_entrega)
     ####regresa     
     os.chdir(ruta_inicial)
+
+def obtener_parametros(tarea):
+    detalles = models.Crear_tarea.objects.filter(nombre=tarea).values('entrada_esperada').first()
+    if detalles:
+        return detalles['entrada_esperada']
+
+def salidas(tarea):
+    detalles = models.Crear_tarea.objects.filter(nombre=tarea).values('salida_esperada').first()
+    if detalles:
+        return detalles['salida_esperada']
+
+def crear_docker(directorio_destino, id_entrega):
+    file = directorio_destino + "/Dockerfile"
+    dockerfile = open(file, 'a+')
+    dockerfile.write('FROM python:3.9\n')
+    dockerfile.write('WORKDIR /usr/src/myapp\n')
+    dockerfile.write('COPY . .\n')
+    dockerfile.write('ENTRYPOINT ["python3"]\n')
+    dockerfile.close()
+
+
+    nombre_dr = str(id_entrega)
+    imagen = subprocess.run(['docker', 'build', directorio_destino, '-t', nombre_dr])
+

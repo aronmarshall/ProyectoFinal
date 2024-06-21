@@ -27,7 +27,7 @@
                         <form method="POST" action="/entregar_tarea">
                             {% csrf_token %}
                             <label for="tarea">Pega tu tarea:</label><br>
-                            <input type="text" id="tarea" name="tarea" required/><br>
+                            <textarea type="text" id="tarea" name="tarea" required></textarea><br>
 
                             <button type="submit" class="btn btn-success">Entregar Tarea</button>
                         </form>

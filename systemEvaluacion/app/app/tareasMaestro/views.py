@@ -43,7 +43,7 @@ def crear_tarea(request)->HttpResponse:
             fecha_cierre = request.POST.get('fecha_cierre')
             entrada = request.POST.get('entrada')
             salida = request.POST.get('salida')
-
+            
             if titulo_tarea_igual(nombre_eje):
                 messages.info(request, f'Lo siento, la tarea {nombre_eje} tiene nombre duplicado.')
                 return render(request, 'inicio_maestro.html')
