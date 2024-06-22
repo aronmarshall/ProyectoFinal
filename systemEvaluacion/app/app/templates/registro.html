@@ -1,35 +1,56 @@
 {% extends "baseLogReg.html" %}
-    <head>
-        {% block titulo %}Registro de usuario{% endblock %}
-    </head>
-    <body>
-        {% block encabezado %}
-        <h1>Regístrate</h1>
-        {% if messages %}
-            <ul class="messages">
+
+{% block titulo %}
+    Registro de usuario
+{% endblock %}
+
+{% block encabezado %}
+    <h1 class="display-4">Regístrate</h1>
+
+    {% if messages %}
+        <div class="alert alert-info">
+            <ul class="mb-0">
                 {% for message in messages %}
                     <li>{{ message }}</li>
                 {% endfor %}
             </ul>
-        {% endif %}
-        {% endblock %}
-        {% block formulario %}
-            <form method="POST">
-                {% csrf_token %}
-                <label>Nombre:</label><br>
-                <input type="text" id="nombre_completo" name="nombre_completo" required/><br>
-                <label>Matricula:</label><br>
-                <input type="text" id="matricula" name="matricula" required/><br>
-                <label>Usuario:</label><br>
-                <input type="text" id="usuario_nuevo" name="usuario_nuevo" required/><br>
-                <label>Contraseña</label><br>
-                <input type="password" id="contasenia" name="contrasenia" required/><br>
-                <label>Confirma contraseña</label><br>
-                <input type="password" id="contasenia_confirma" name="contrasenia_confirma" required/><br>
-                <input type="submit" value="Registrar"/>
-            </form>
-            <a class="navbar-brand" href="login">Iniciar sesión</a>
-        {% endblock %}
-    </body>
+        </div>
+    {% endif %}
+{% endblock %}
 
-    
+{% block formulario %}
+    <form method="POST" class="w-50 mx-auto">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="nombre_completo">Nombre:</label>
+            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" required>
+        </div>
+
+        <div class="form-group">
+            <label for="matricula">Matrícula:</label>
+            <input type="text" class="form-control" id="matricula" name="matricula" required>
+        </div>
+
+        <div class="form-group">
+            <label for="usuario_nuevo">Usuario:</label>
+            <input type="text" class="form-control" id="usuario_nuevo" name="usuario_nuevo" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contrasenia">Contraseña:</label>
+            <input type="password" class="form-control" id="contrasenia" name="contrasenia" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contrasenia_confirma">Confirma contraseña:</label>
+            <input type="password" class="form-control" id="contrasenia_confirma" name="contrasenia_confirma" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+
+    <div class="mt-3">
+        <a class="btn btn-link" href="login">Iniciar sesión</a>
+    </div>
+{% endblock %}

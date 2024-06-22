@@ -1,39 +1,42 @@
 {% extends "baseLogReg.html" %}
-    <head>
-        {% block titulo %}Inicio de sesión{% endblock %}
-        
-    </head>
-    
-    <body>
-    {% block encabezado %}<h1>Inicia Sesión</h1>{% endblock %} 
-    {% block contenido %}
-    {% if errores %}
-        <b style="color: red;">{{ errores }}</b>
-    {% endif %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endblock %}
-        <section>
-            {% block formulario %}
-                <form method="POST">
-                    {% csrf_token %}
-                        <label for="login_usuario">Usuario:</label><br>
-                        <input type="text" id="login_usuario" name="login_usuario" required/><br>
-                        <label for="login_contrasenia">Contraseña:</label><br>
-                        <input type="password" id="login_contrasenia" name="login_contrasenia" required/><br>
-                        <div class="d-flex justify-content-center">
-                            <div class="g-recaptcha" data-sitekey="{{ publica }}"></div>
-                        </div>                        
-                        <br>
-                        <input type="submit" value="Aceptar"/><br>
-                        <br>
-                        <a class="navbar-brand" href="registro">¿No tienes cuenta?</a><br>
-                </form>
-            {% endblock %}
-            
-        </section>
-    </body>
-</html>
+
+{% block titulo %}Inicio de sesión{% endblock %}
+
+{% block encabezado %}
+<h1 style="font-family: 'Roboto', Arial, sans-serif; text-transform: uppercase;">INICIA SESIÓN</h1>
+{% endblock %}
+
+
+
+{% block contenido %}
+{% if errores %}
+    <b style="color: red;">{{ errores }}</b>
+{% endif %}
+<ul class="messages">
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+{% block formulario %}
+<form method="POST" class="w-50 mx-auto">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="login_usuario" class="form-label">Usuario:</label>
+        <input type="text" id="login_usuario" name="login_usuario" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="login_contrasenia" class="form-label">Contraseña:</label>
+        <input type="password" id="login_contrasenia" name="login_contrasenia" class="form-control" required>
+    </div>
+    <div class="d-flex justify-content-center">
+        <div class="g-recaptcha" data-sitekey="{{ publica }}"></div>
+    </div>
+    <br>
+    <input type="submit" value="Aceptar" class="btn btn-primary">
+    <br><br>
+    <a class="btn btn-link" href="registro">¿No tienes cuenta?</a>
+</form>
+{% endblock %}
+
