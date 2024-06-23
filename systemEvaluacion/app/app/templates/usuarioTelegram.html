@@ -1,28 +1,24 @@
 {% extends "baseLogReg.html" %}
+<head>
+    {% block encabezado %}<h1>usuario telegram</h1>{% endblock %}
+</head>
 
-{% block encabezado %}
-    <h1 class="display-4">Usuario Telegram</h1>
-{% endblock %}
-
-{% block formulario %}
-    <form method="POST" class="w-50 mx-auto">
-        {% csrf_token %}
-
-        {% if messages %}
-            <div class="alert alert-info">
-                <ul class="mb-0">
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+<body>
+    {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
+    {% block formulario %}
+        <form method="POST">
+            {% csrf_token %}
+            <label>Ingresa tu usuario de telegram</label><br>
+            <input type="text" id="usuario_telegram" name="usuario_telegram"/>
+            <br>
+            <input type="submit" value="Siguiente"/>
+        </form>
+    {% endblock %}
+</body>
 
-        <div class="form-group">
-            <label for="usuario_telegram">Ingresa tu usuario de Telegram:</label>
-            <input type="text" class="form-control" id="usuario_telegram" name="usuario_telegram" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Siguiente</button>
-    </form>
-{% endblock %}

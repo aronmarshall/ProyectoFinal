@@ -1,32 +1,25 @@
 {% extends "baseLogReg.html" %}
+<head>
+    {% block encabezado %}<h1>Autenticación</h1>{% endblock %}
+</head>
 
-{% block encabezado %}
-    <h1 class="display-4">Autenticación</h1>
-{% endblock %}
-
-{% block formulario %}
-    <form method="POST" class="w-50 mx-auto">
-        {% csrf_token %}
-
-        {% if messages %}
-            <div class="alert alert-info">
-                <ul class="mb-0">
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
+<body>
+    {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
+    {% block formulario %}
+        <form method="POST">
+            {% csrf_token %}
+            <label>Ingresa el Token</label><br>
+            <input type="text" id="caracteres" name="caracteres"/>
+            <br>
+            <input type="submit" value="Confirmar"/>
+        </form>
+        <a href="https://web.telegram.org/a/#7199611399">Ir a bot</a>
+    {% endblock %}
+</body>
 
-        <div class="form-group">
-            <label for="caracteres">Ingresa el Token:</label>
-            <input type="text" class="form-control" id="caracteres" name="caracteres" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Confirmar</button>
-    </form>
-
-    <div class="mt-3">
-        <a href="https://web.telegram.org/a/#7199611399" class="btn btn-link">Ir a bot</a>
-    </div>
-{% endblock %}
