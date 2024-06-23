@@ -4,5 +4,5 @@ certifi==2023.11.17
 telebot==0.0.5
 requests==2.31.0
 captcha==0.5.0
-docker=5.0.2
+docker==5.0.2
 gunicorn==20.1.0
