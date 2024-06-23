@@ -460,11 +460,11 @@ def loguear_usuario(request)->HttpResponseRedirect:
         request.session['token'] = token
         
         if not verificar_existencia_usuario(usuario):
-            messages.error(request, "Usuario o contraseña incorrectos 1")
+            messages.error(request, "El usuario no existe.")
             return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
         else:
             if not consultar_hash(usuario, contrasenia):
-                messages.error(request, "Usuario o contraseña incorrectos 2")
+                messages.error(request, "Usuario o contraseña incorrectos")
                 return render(request, 'login.html', {'publica': settings.RECAPTCHA_PUBLIC_KEY})
             else:
                 #####################
@@ -493,8 +493,6 @@ def consultar_hash(usuario:str, contrasenia:str)->bool:
         return True
     else:
         return False
-
-
 
 ###########################################################Telegram y token
 def ingresar_usuario_telegram(request)->HttpResponseRedirect:

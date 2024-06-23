@@ -7,8 +7,7 @@ from bd import models
 from systemEvaluacion import views
 
 
-#TOKEN = os.environ.get('TOKEN_TELEGRAM') #CARGAR VARIABLE DE ENTORNO
-TOKEN = '7199611399:AAHrE8s0MW6oLz-MmhI6RzFDs-TCFaxq7q8'
+TOKEN = os.environ.get('TOKEN_TELEGRAM') 
 
 bot = telebot.TeleBot(TOKEN)
 

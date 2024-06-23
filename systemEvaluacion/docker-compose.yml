@@ -12,12 +12,13 @@ services:
       DEBUG: ${DEBUG}
       DJANGO_KEY: ${DJANGO_KEY}
       BD_NAME: ${BD_NAME}
-      BD_USER: root ##Proteger usuario
+      BD_USER: ${BD_USER}
       BD_PASSWORD: ${BD_PASSWORD}
       BD_HOST: bd
       BD_PORT: ${BD_PORT}
       PUBLIC_KEY: ${PUBLIC_KEY}
       PRIVATE_KEY: ${PRIVATE_KEY}
+      TOKEN_TELEGRAM: ${TOKEN_TELEGRAM}  
 
     image: evaluador:1.0
     restart: always
