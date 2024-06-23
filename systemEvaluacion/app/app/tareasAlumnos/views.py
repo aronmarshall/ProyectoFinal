@@ -11,7 +11,8 @@ import os
 import shutil
 import subprocess
 import docker
-
+import random
+    
 ##########################################################Devuelve las tareas disponibles
 def listar_tareas_disponibles(request)->HttpResponse:
     """
@@ -135,13 +136,13 @@ def entregar_tarea(request)->HttpResponse:
                 alumno = request.session.get('alumno')
                 tarea = request.session.get('nombre_entrega_tarea')
                 hora_entrega = timezone.now()
-                puntaje = obtener_puntaje()
                 entrega_tarea = request.POST.get('tarea')
 
                 nombre_alumno=consultar_nombre_formal(alumno)
                 generar_entorno_de_evaluacion(id_entrega, entrega_tarea, tarea)
                 entradas_esperadas(tarea)
 
+                puntaje = obtener_puntaje(id_entrega)
                 almacenar_tarea = models.Entrega(
                     id_entrega=id_entrega, 
                     alumno=nombre_alumno, 
@@ -153,7 +154,7 @@ def entregar_tarea(request)->HttpResponse:
                 
                 almacenar_tarea.save()
                 
-                messages.info(request, f'Entregaste la tarea "{tarea}".')
+                messages.info(request, f'Entregaste la tarea "{tarea} {obtener_puntaje(id_entrega)}".')
                 return redirect('/inicio')
 
             except Exception as e:
@@ -321,7 +322,6 @@ def obtener_puntaje(id_entrega:int)->int:
 
         container.remove(force=True)
         client.images.remove(image=num_entrega, force=True)
-
         return contar_aciertos
 
     except Exception as e:
