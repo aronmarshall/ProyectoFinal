@@ -37,7 +37,8 @@ urlpatterns = [
     path('listar_mis_tareas', vistasDos.listar_mis_tareas),
     path('respuestas_estudiantes', vistasDos.respuestas_estudiantes),
     path('eliminar_tareas', vistasDos.eliminar_tareas),
-    
+    path('respuesta_detallada', vistasDos.respuesta_detallada),
+
     path('tareas_disponibles', vistasTres.listar_tareas_disponibles),
     path('subir_tarea', vistasTres.subir_tarea),
     path('entregar_tarea', vistasTres.entregar_tarea),

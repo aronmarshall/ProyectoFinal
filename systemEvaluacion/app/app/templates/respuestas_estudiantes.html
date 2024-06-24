@@ -30,7 +30,7 @@
                     <td>{{ estudiante.alumno }}</td>
                     <td>{{ estudiante.puntaje }}</td>
                     <td>
-                        <form method="POST" action="#">
+                        <form method="POST" action="/respuesta_detallada">
                             {% csrf_token %}
                             <input type="hidden" id="nombre_tarea" name="nombre_tarea" value="{{ estudiante.tarea }}">
                             <input type="hidden" id="nombre_estudiante" name="nombre_estudiante" value="{{ estudiante.alumno }}">
