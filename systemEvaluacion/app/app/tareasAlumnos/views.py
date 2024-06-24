@@ -12,6 +12,9 @@ import shutil
 import subprocess
 import docker
 import random
+import logging
+
+logging.basicConfig(filename='logs/app.log', filemode='a', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
     
 ##########################################################Devuelve las tareas disponibles
 def listar_tareas_disponibles(request)->HttpResponse:
@@ -107,7 +110,7 @@ def subir_tarea(request)->HttpResponse:
             detalles_tarea = consultar_detalles_tarea(nombre_tarea)
 
             request.session['nombre_entrega_tarea'] = nombre_tarea 
-            
+            logging.info(f'El usuario ha subido una tarea {nombre_tarea}')            
             return render(request, 'subir_tareas.html', {'detalles_tarea': detalles_tarea})
 
 def consultar_detalles_tarea(nombre_tarea:str)->str:
@@ -131,6 +134,7 @@ def consultar_detalles_tarea(nombre_tarea:str)->str:
         }
         return detalles_tarea
     except models.Crear_tarea.DoesNotExist:
+        logging.warning(f'no existe la siguiente tarea consultada {tarea}')
         return "No existe la tarea."
 ##########################################################Entregar la tarea
 def entregar_tarea(request)->HttpResponse:
@@ -170,7 +174,7 @@ def entregar_tarea(request)->HttpResponse:
                     )
                 
                 almacenar_tarea.save()
-                
+                logging.info(f'el usuario {alumno} ha entregado la siguiente tarea {tarea}')
                 messages.info(request, f'Entregaste la tarea "{tarea} {obtener_puntaje(id_entrega)}".')
                 return redirect('/inicio')
 
@@ -261,11 +265,13 @@ def generar_entorno_de_evaluacion(id_entrega:int, entrega_tarea:str, tarea:str)-
             
             os.chdir(ruta_local)
     except FileNotFoundError as fnf_error:    
+        logging.warning(f'no se han encontrado archivos')
         messages.error(request, f'Error: Archivos no encontrados {fnf_error}')
     except IOError as io_error:
         messages.error(request, f'Error: E/S - {io_error}')        
     except Exception as e:
         messages.error(request, f"Error inesperado - {e}")
+        logging.error(f'ha sucedido un error en la evaluacion')
 
 def entradas_esperadas(tarea:str)->str:
     """_summary_
