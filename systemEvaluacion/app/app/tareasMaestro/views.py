@@ -8,6 +8,9 @@ from systemEvaluacion import settings
 
 import os
 import random
+import logging
+
+logging.basicConfig(filename='logs/app.log', filemode='a', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 def crear_tarea(request)->HttpResponse:
     """
@@ -37,6 +40,7 @@ def crear_tarea(request)->HttpResponse:
             
             if titulo_tarea_igual(nombre_eje):
                 messages.info(request, f'Lo siento, la tarea {nombre_eje} tiene nombre duplicado.')
+                logging.info(f'Se ha intentado crear una tarea con un nombre identico {nombre_eje}')
                 return render(request, 'inicio_maestro.html')
             else:
                 insertar_datos = models.Crear_tarea(
@@ -50,6 +54,7 @@ def crear_tarea(request)->HttpResponse:
                     salida_esperada=salida
                 )
                 insertar_datos.save()
+                logging.info(f'Se ha creado con exito la siguente tarea {nombre_eje}')
 
                 messages.info(request, f'Se insertó la actividad "{nombre_eje}".')
                 return render(request, 'inicio_maestro.html')
