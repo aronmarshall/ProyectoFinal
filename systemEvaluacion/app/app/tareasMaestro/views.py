@@ -1,4 +1,3 @@
-from pyexpat.errors import messages
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -6,16 +5,8 @@ from datetime import datetime, timezone
 
 from bd import models
 from systemEvaluacion import settings
-from api import telegram
-from api import recaptcha
 
 import os
-import base64
-import crypt
-import re
-import threading
-import secrets
-import string
 import random
 
 def crear_tarea(request)->HttpResponse:
@@ -60,7 +51,7 @@ def crear_tarea(request)->HttpResponse:
                 )
                 insertar_datos.save()
 
-                messages.info(request, f'Se insertó la actividad {nombre_eje}')
+                messages.info(request, f'Se insertó la actividad "{nombre_eje}".')
                 return render(request, 'inicio_maestro.html')
 
 def titulo_tarea_igual(nombre_eje:str)->bool:
@@ -152,6 +143,9 @@ def existe_ejercicio(eliminar:int)->bool:
     return existe
 
 def respuestas_estudiantes(request)->HttpResponse:
+    """_summary_
+    Muestra las respuestas de todos los estudiantes.
+    """
     if not request.session.get('maestro'):
         return redirect('/inicio')  
     else:
@@ -163,5 +157,43 @@ def respuestas_estudiantes(request)->HttpResponse:
             return render(request, 'respuestas_estudiantes.html', {'estudiantes': estudiantes})
 
 def consultar_puntos_estudiantes()->str:
+    """_summary_
+    Obtiene las respuestas de los estudiantes que han entregado alguna tarea.
+    Returns:
+        str: El nombre del alumno, la tarea que entregaron y la cantidad de puntos que obtuvieron
+    """
     consulta_resultados = models.Entrega.objects.all().values('alumno', 'tarea', 'puntaje')
     return consulta_resultados
+ 
+def respuesta_detallada(request)->HttpResponse:
+    """_summary_
+    Devuelve la vista detallada por usuario.
+    """
+    if not request.session.get('maestro'):
+        return redirect('/inicio')  
+    else:
+        if request.method == 'GET':
+            return render(request, 'respuesta_detallada.html')
+        elif request.method == 'POST':
+            nombre_tarea = request.POST.get('nombre_tarea')
+            nombre_estudiante = request.POST.get('nombre_estudiante')
+            
+            detalles = consulta_detallada_de_respuesta(nombre_tarea, nombre_estudiante)
+            return render(request, 'respuesta_detallada.html', {
+                'nombre_tarea': nombre_tarea,
+                'nombre_estudiante': nombre_estudiante,
+                'detalles': detalles,  
+            })
+
+def consulta_detallada_de_respuesta(nombre_tarea:str,nombre_estudiante:str)->str:
+    """_summary_
+    Consular los campos de cada usuario dependiendiedo el nombre de la tarea y estudiantes.
+    Args:
+        nombre_tarea (str): Nombre de la tarea.
+        nombre_estudiante (str): Nombre del estudiante.
+
+    Returns:
+        str: devuelve los campos del estudiante.
+    """
+    detalles_tarea = models.Entrega.objects.filter(alumno=nombre_estudiante, tarea=nombre_tarea).values('hora_entrega', 'puntaje', 'codigo_entrega').first()
+    return detalles_tarea

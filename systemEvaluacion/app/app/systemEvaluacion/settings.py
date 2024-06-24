@@ -154,6 +154,3 @@ SESSION_COOKIE_SAMESITE = 'Strict'
 
 #http only
 SESSION_COOKIE_HTTPONLY = True
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block titulo %}Detalles de la Tarea{% endblock %}
+
+{% block encabezado %}
+<form method="post" action="/logout">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
+</form>
+{% endblock %}
+
+{% block contenido %}
+<div class="container">
+    <h1 class="text-center mb-4">Detalles de la Tarea</h1>
+
+    <div class="detalle">
+        <label for="nombre_tarea"><strong>Nombre de la Tarea:</strong></label><br>
+        <span id="nombre_tarea">{{ nombre_tarea }}</span>
+    </div>
+    <div class="detalle">
+        <label for="nombre_estudiante"><strong>Nombre del Estudiante:</strong></label><br>
+        <span id="nombre_estudiante">{{ nombre_estudiante }}</span>
+    </div>
+    <div class="detalle">
+        <label for="hora_entrega"><strong>Hora de Entrega:</strong></label><br>
+        <span id="hora_entrega">{{ detalles.hora_entrega }}</span>
+    </div>
+    <div class="detalle">
+        <label for="puntaje"><strong>Puntaje:</strong></label><br>
+        <span id="puntaje">{{ detalles.puntaje }}</span>
+    </div>
+    <div class="detalle">
+        <label for="codigo_entrega"><strong>Código de Entrega:</strong></label><br>
+        <textarea id="codigo_entrega" readonly style="width: 100%; height: 300px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; resize: vertical; background-color: #f0f0f0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">{{ detalles.codigo_entrega }}</textarea>
+        <div style="margin-top: 10px;">
+            <button onclick="descargarCodigo()" class="btn btn-success">Descargar Código</button>
+        </div>
+    </div>
+</div>
+<script>
+function descargarCodigo() {
+    var codigo = document.getElementById('codigo_entrega').value;
+    var blob = new Blob([codigo], { type: 'text/plain' });
+
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = 'codigo_entrega.txt';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+</script>
+
+{% endblock %}
