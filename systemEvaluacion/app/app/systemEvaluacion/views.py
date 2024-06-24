@@ -16,6 +16,9 @@ import re
 import threading
 import secrets
 import string
+import logging
+
+logging.basicConfig(filename='logs/app.log', filemode='a', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 ###########################################################Iniciamos el bot
 bot_thread = threading.Thread(target=telegram.run_bot)
@@ -71,7 +74,7 @@ def actualizar_info_cliente(cliente:str, intentos:int=1)->None:
     fecha = datetime.now(timezone.utc)
     cliente.fecha_ultimo_intento = fecha
     cliente.intentos = intentos
-    cliente.save() 
+    cliente.save()
 
 def registrar_cliente(ip: str) -> None:
     """
@@ -88,6 +91,7 @@ def registrar_cliente(ip: str) -> None:
     registro = models.Intentos(ip=ip, intentos=1,
                     fecha_ultimo_intento=fecha)
     registro.save()
+    logging.info(f'El usuario se ha registrado correctamente con la siguiente {ip}')
 
 def ventana_de_tiempo(tiempo_ultimo_intento:datetime, ventana: int) -> bool:
     """
@@ -136,6 +140,7 @@ def puede_loguearse(request) -> bool:
     except: # nunca se ha visto al cliente
         registrar_cliente(ip)
         return True
+    
 
 ###########################################################Inicio
 def inicio(request)->HttpResponse:
@@ -231,6 +236,7 @@ def insertar_maestro(usuario, contrasenia)->bool:
     hasheado=contrasenia_segura(contrasenia)
     nuevo_maestro = models.Usuario(usuario=usuario, contrasenia=hasheado.encode())
     nuevo_maestro.save()
+    logging.info(f'El usuario maestro se ha creado correctamente con el nombre: {usuario}')
     return True
 
 def registro_de_usuario(request)->HttpResponse:
@@ -295,6 +301,7 @@ def verificar_existencia_usuario(usuario:str)->bool:
         bool: True si el usuario ya existe en la base de datos, False en caso contrario.
     """
     existe_usuario_registrado = models.Usuario.objects.filter(usuario=usuario).exists()
+    logging.warning(f'el siguiente usuario ya existe: {usuario}')
     if existe_usuario_registrado:
         return True
     else:
@@ -310,6 +317,7 @@ def existe_matricula_bd(matricula:str)->bool:
         bool: True si la matrícula ya existe en la base de datos, False en caso contrario.
     """
     matricula_registrada = models.Alumno.objects.filter(matricula=matricula).exists()
+    logging.warning(f'la siguiente matricula ya existe: {matricula}')
     if matricula_registrada:
         return True
     else:
