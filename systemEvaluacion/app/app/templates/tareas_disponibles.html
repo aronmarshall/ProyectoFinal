@@ -1,70 +1,91 @@
 {% extends "base.html" %}
 
-{% block titulo %}Tareas - Sistema de Evaluación de Código{% endblock %}
+{% block titulo %}Tareas Disponibles{% endblock %}
 
 {% block encabezado %}
-<form method="post" action="/logout">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
-</form>
+<div class="text-right">
+    <form method="post" action="/logout">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-personalizado">Cerrar Sesión</button>
+    </form>
+</div>
 {% endblock %}
 
 {% block contenido %}
-    <style>
-        /* Estilos para el formulario */
-        .card-body form {
-            text-align: center; /* Centrar el contenido del formulario */
-            max-width: 300px; /* Ancho máximo del formulario */
-            margin: 0 auto; /* Centrar horizontalmente */
-            padding: 10px; /* Espaciado interno */
-            border: 1px solid #ccc; /* Borde del formulario */
-            background-color: #f9f9f9; /* Color de fondo */
-        }
-        .card-body input[type="text"] {
-            width: 100%; /* Ancho completo del campo de texto */
-            border: none; /* Eliminar el borde del campo de texto */
-            background-color: transparent; /* Fondo transparente */
-            text-align: center; /* Centrar el texto dentro del campo de texto */
-            font-size: inherit; /* Tamaño de fuente igual al del padre */
-            font-weight: inherit; /* Peso de la fuente igual al del padre */
-            color: inherit; /* Color de texto igual al del padre */
-            padding: 0; /* Eliminar el relleno */
-        }
-    </style>
+<style>
+    /* Estilos específicos para la página */
+    .card-body {
+        text-align: center;
+        padding: 20px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+    }
+    .card-body input[type="text"] {
+        width: 100%;
+        border: none;
+        background-color: transparent;
+        text-align: center;
+        font-size: inherit;
+        font-weight: inherit;
+        color: inherit;
+        padding: 0;
+        margin-bottom: 10px;
+    }
+</style>
 
-    <h1 style="text-align: center;">Entregar tarea</h1>
+<h1 class="text-center">Tareas Disponibles</h1>
 
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
+{% if messages %}
+<ul class="list-unstyled">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
-    <div class="row">
-        {% for tarea in tareas_validas %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <form method="POST" action="/subir_tarea">
-                            {% csrf_token %}
-                            <label for="nombre_tarea"><strong>Tarea:</strong></label><br>
-                            <input type="text" id="nombre_tarea" name="nombre_tarea" readonly value="{{ tarea.nombre }}"><br>
-                        
-                            <p class="card-text"><strong>Puntos:</strong><br>#</p>
-                            <p class="card-text"><strong>Inicio:</strong><br>{{ tarea.fecha_inicio }}</p>
-                            <p class="card-text"><strong>Cierre:</strong><br>{{ tarea.fecha_cierre }}</p>
+<div class="row">
+    {% for tarea in tareas_validas %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="/subir_tarea">
+                    {% csrf_token %}
+                    <input type="text" id="nombre_tarea" name="nombre_tarea" readonly value="{{ tarea.nombre }}">
+                    
+                    <p><strong>Inicio:</strong> {{ tarea.fecha_inicio }}</p>
+                    <p><strong>Cierre:</strong> {{ tarea.fecha_cierre }}</p>
 
-                            {% if tarea.estado_valido %}
-                                <p class="card-text text-success">Disponible</p>
-                                <button type="submit" class="btn btn-primary">Ver detalles</button> 
-                            {% else %}
-                                <p class="card-text text-danger">No disponible</p>
-                                <p class="card-text">No puedes subir</p>
-                            {% endif %}
-                        </form>
-                    </div>
-                </div>
+                    {% if tarea.estado_valido %}
+                    <p class="text-success mb-3">Disponible</p>
+                    <button type="submit" class="btn btn-primary btn-block">Ver detalles</button>
+                    {% else %}
+                    <p class="text-danger mb-3">No disponible</p>
+                    <p>No puedes subir</p>
+                    {% endif %}
+                </form>
             </div>
-        {% endfor %}
+        </div>
     </div>
+    {% endfor %}
+</div>
+
+<div class="mt-4">
+    <h3>Puntajes</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tarea</th>
+                <th>Puntaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entrega in puntaje_alumno %}
+            <tr>
+                <td>{{ entrega.tarea }}</td>
+                <td>{{ entrega.puntaje }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

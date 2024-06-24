@@ -28,15 +28,33 @@ def listar_tareas_disponibles(request)->HttpResponse:
         return redirect('/inicio_maestro')  
     else:
         if request.method == 'GET':  
-            
+
             hoy = date.today()  
-            tareas_validas = obtener_tareas_con_estado(hoy)  
+            tareas_validas = obtener_tareas_con_estado(hoy)
+            alumno = request.session.get('alumno')  
+            puntaje = puntaje_por_alumno(alumno)
 
             messages.info(request, f'Fecha: {hoy}')  
-            return render(request, 'tareas_disponibles.html', {'tareas_validas': tareas_validas})
+            return render(request, 'tareas_disponibles.html', {'tareas_validas': tareas_validas, 'puntaje_alumno': puntaje})
         elif request.method == 'POST':  
             return render(request, 'tareas_disponibles.html')  
 
+
+
+def puntaje_por_alumno(alumno: str)->list:
+    """_summary_
+    Consulta el puntaje por ejercicio de estuantes
+    Args:
+        alumno (str): El nombre del alumno que se consultara.
+
+    Returns:
+        list: Devuelve los elementos del alumno como la tarea y su puntae hechos por el alumno.
+    """
+    nombre_alumno = consultar_nombre_formal(alumno)
+    entregas = models.Entrega.objects.filter(alumno=nombre_alumno).values('tarea', 'puntaje')
+    return list(entregas)
+
+        
 def fecha_valida(fecha_inicio:date, fecha_cierre:date)->bool:
     """
     Verifica si la fecha de inicio dada es válida (hoy o posterior).
@@ -108,7 +126,6 @@ def consultar_detalles_tarea(nombre_tarea:str)->str:
         detalles_tarea = {
             'nombre': tarea.nombre,
             'descripcion': tarea.descripcion_general,
-            #puntos por obtener posibles
             'fecha_inicio': tarea.fecha_inicio,
             'fecha_cierre': tarea.fecha_cierre,
         }

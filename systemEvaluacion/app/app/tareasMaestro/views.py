@@ -1,4 +1,3 @@
-from pyexpat.errors import messages
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -6,16 +5,8 @@ from datetime import datetime, timezone
 
 from bd import models
 from systemEvaluacion import settings
-from api import telegram
-from api import recaptcha
 
 import os
-import base64
-import crypt
-import re
-import threading
-import secrets
-import string
 import random
 
 def crear_tarea(request)->HttpResponse:
@@ -60,7 +51,7 @@ def crear_tarea(request)->HttpResponse:
                 )
                 insertar_datos.save()
 
-                messages.info(request, f'Se insertó la actividad {nombre_eje}')
+                messages.info(request, f'Se insertó la actividad "{nombre_eje}".')
                 return render(request, 'inicio_maestro.html')
 
 def titulo_tarea_igual(nombre_eje:str)->bool:
@@ -165,3 +156,4 @@ def respuestas_estudiantes(request)->HttpResponse:
 def consultar_puntos_estudiantes()->str:
     consulta_resultados = models.Entrega.objects.all().values('alumno', 'tarea', 'puntaje')
     return consulta_resultados
+ 
